@@ -1,0 +1,187 @@
+import { useState } from "react"
+import { Building2, Pencil, Plus, Trash2 } from "lucide-react"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
+import {
+  ConfirmDialog,
+  DataTable,
+  DataTableToolbar,
+  EmptyState,
+  IconBadge,
+  PageHeader,
+  StatusBadge,
+  Text,
+  type Column,
+} from "@/components/shared"
+import { useDebounce } from "@/hooks/use-debounce"
+import { useDepartment } from "@/hooks/data-fetch"
+import type { Department } from "@/redux/features/departments"
+import { getErrorMessage } from "@/lib/errors"
+import { shortId } from "@/lib/format"
+import { DepartmentFormModal } from "@/components/modal"
+
+export default function DepartmentListPage() {
+  const [search, setSearch] = useState("")
+  const debounced = useDebounce(search, 350)
+
+  const {
+    departments,
+    isFetching,
+    isLoading,
+    deleteDepartment,
+    toggleDepartmentStatus,
+  } = useDepartment({ searchTerm: debounced || undefined, limit: 100 })
+
+  const [formOpen, setFormOpen] = useState(false)
+  const [editing, setEditing] = useState<Department | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<Department | null>(null)
+
+  const openCreate = () => {
+    setEditing(null)
+    setFormOpen(true)
+  }
+  const openEdit = (d: Department) => {
+    setEditing(d)
+    setFormOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return
+    try {
+      await deleteDepartment(pendingDelete.id).unwrap()
+      toast.success("Department deleted")
+      setPendingDelete(null)
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Failed to delete department"))
+    }
+  }
+
+  const onToggle = async (id: string) => {
+    try {
+      await toggleDepartmentStatus(id).unwrap()
+    } catch {
+      toast.error("Failed to update status")
+    }
+  }
+
+  const columns: Column<Department>[] = [
+    {
+      key: "name",
+      header: "Name",
+      cell: (d) => (
+        <div className="flex items-center gap-3">
+          <IconBadge icon={Building2} />
+          <div className="min-w-0">
+            <div className="truncate font-medium">{d.name || "Untitled"}</div>
+            <Text size="xs" tone="muted">
+              {shortId(d.id)}
+            </Text>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "description",
+      header: "Description",
+      cell: (d) => (
+        <Text size="sm" tone="muted" className="line-clamp-2">
+          {d.description || "—"}
+        </Text>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      cell: (d) => (
+        <div className="flex items-center gap-2">
+          <Switch
+            checked={d.isActive}
+            onCheckedChange={() => onToggle(d.id)}
+          />
+          <StatusBadge tone={d.isActive ? "active" : "inactive"} />
+        </div>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      align: "right",
+      cell: (d) => (
+        <div className="flex justify-end gap-1">
+          <Button
+            size="icon-sm"
+            variant="soft"
+            onClick={() => openEdit(d)}
+            aria-label="Edit"
+          >
+            <Pencil />
+          </Button>
+          <Button
+            size="icon-sm"
+            variant="soft-destructive"
+            onClick={() => setPendingDelete(d)}
+            aria-label="Delete"
+          >
+            <Trash2 />
+          </Button>
+        </div>
+      ),
+    },
+  ]
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Department List"
+        description="Group employees by department for reporting and access scoping."
+        actions={
+          <Button onClick={openCreate}>
+            <Plus className="mr-2 size-4" /> New Department
+          </Button>
+        }
+      />
+
+      <DataTableToolbar
+        value={search}
+        onChange={setSearch}
+        placeholder="Search departments..."
+        fetching={isFetching}
+      />
+
+      <DataTable<Department>
+        data={departments}
+        columns={columns}
+        isLoading={isLoading && departments.length === 0}
+        isFetching={isFetching}
+        empty={
+          <EmptyState
+            icon={Building2}
+            title="No departments yet."
+            action={
+              <Button size="sm" onClick={openCreate}>
+                <Plus className="mr-1.5 size-4" /> Create Department
+              </Button>
+            }
+          />
+        }
+      />
+
+      <DepartmentFormModal
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        initial={editing}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        onOpenChange={(v) => !v && setPendingDelete(null)}
+        title="Delete department?"
+        description={`This will permanently remove "${pendingDelete?.name ?? ""}".`}
+        confirmLabel="Delete"
+        destructive
+        onConfirm={confirmDelete}
+      />
+    </div>
+  )
+}

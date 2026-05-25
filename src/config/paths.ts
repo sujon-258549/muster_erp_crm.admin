@@ -1,0 +1,34 @@
+import { getModule, type ModuleKey } from "@/config/modules"
+
+// Narrow ModuleKey → guaranteed string path from the registry. If a module
+// key is missing from the registry, fail loudly during dev.
+const mp = (key: ModuleKey): string => {
+  const mod = getModule(key)
+  if (!mod) throw new Error(`Module "${key}" not registered in MODULES`)
+  return mod.path
+}
+
+export const ROUTES = {
+  ROOT: "/",
+  AUTH: {
+    LOGIN: "/auth/login",
+    FORGOT_PASSWORD: "/auth/forgot-password",
+  },
+  MODULES: {
+    DASHBOARD: mp("dashboard"),
+    USERS: mp("users"),
+    CUSTOMERS: mp("customers"),
+    PRODUCTS: mp("products"),
+    INVENTORY: mp("inventory"),
+    INVOICES: mp("invoices"),
+    SETTINGS: mp("settings"),
+  },
+  EMPLOYEES: {
+    LIST: "/employees",
+    CREATE: "/employees/new",
+    DEPARTMENTS: "/employees/departments",
+    ROLES: "/employees/roles",
+    DESIGNATIONS: "/employees/designations",
+  },
+  NOT_FOUND: "*",
+} as const
