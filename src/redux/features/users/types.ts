@@ -36,13 +36,37 @@ export interface CreateEmployeePayload {
   }
 }
 
+// Mirror of CreateEmployeePayload but every section is optional and
+// password isn't required on edit. The backend `updateUser` service merges
+// the partial shape into the existing user.
 export interface UpdateUserPayload {
-  name?: string
-  email?: string
-  phone?: string
-  designation?: string
-  department?: string
-  role?: UserRole
+  user?: {
+    email?: string
+    password?: string
+    mobile?: string
+    roleId?: string
+    departmentId?: string
+    designationId?: string
+    branchId?: string
+    isActive?: boolean
+  }
+  profile?: {
+    name?: string
+    gender?: "MALE" | "FEMALE" | "OTHER"
+    dob?: string
+    bloodGroup?: string
+    nid?: string
+  }
+  address?: {
+    division?: string
+    district?: string
+    upazila?: string
+    address?: string
+  }
+  workInfo?: {
+    experience?: string
+    workType?: string
+  }
 }
 
 export interface ChangePasswordPayload {
