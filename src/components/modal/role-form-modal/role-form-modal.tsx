@@ -23,12 +23,14 @@ interface RoleFormModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   initial?: Role | null
+  onCreated?: (role: Role) => void
 }
 
 export function RoleFormModal({
   open,
   onOpenChange,
   initial,
+  onCreated,
 }: RoleFormModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -37,6 +39,7 @@ export function RoleFormModal({
           key={initial?.id ?? "new"}
           initial={initial ?? null}
           onClose={() => onOpenChange(false)}
+          onCreated={onCreated}
         />
       </DialogContent>
     </Dialog>
@@ -61,9 +64,11 @@ function makeInitial(initial: Role | null): FormState {
 function RoleForm({
   initial,
   onClose,
+  onCreated,
 }: {
   initial: Role | null
   onClose: () => void
+  onCreated?: (role: Role) => void
 }) {
   const [form, setForm] = useState<FormState>(() => makeInitial(initial))
   const { createRole, updateRole, isLoading } = useRole()
@@ -87,12 +92,13 @@ function RoleForm({
         }).unwrap()
         toast.success("Role updated")
       } else {
-        await createRole({
+        const res = await createRole({
           role: form.role.trim(),
           description: form.description.trim() || undefined,
           isActive: form.isActive,
         }).unwrap()
         toast.success("Role created")
+        if (res?.data) onCreated?.(res.data)
       }
       onClose()
     } catch (err) {
