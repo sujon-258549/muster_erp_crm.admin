@@ -249,7 +249,7 @@ function RolePermissionEditor({
           Cancel
         </Button>
         <Button type="button" onClick={handleSave} disabled={saving}>
-          {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
+          {saving && <Loader2 className="size-4 animate-spin" />}
           Save Permissions
         </Button>
       </DialogFooter>

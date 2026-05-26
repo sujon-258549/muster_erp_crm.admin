@@ -23,6 +23,9 @@ export default defineConfig([
         'warn',
         { allowConstantExport: true },
       ],
+      // Downgrade `any` to a warning so day-to-day work isn't blocked, but
+      // still get nudged about it during code review.
+      '@typescript-eslint/no-explicit-any': 'warn',
     },
   },
   {

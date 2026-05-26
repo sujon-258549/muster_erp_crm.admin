@@ -154,7 +154,7 @@ export default function EmployeeCreatePage() {
         actions={
           <Button variant="outline" asChild>
             <Link to={ROUTES.EMPLOYEES.LIST}>
-              <ArrowLeft className="mr-2 size-4" /> Back to list
+              <ArrowLeft className="mr-1 size-4" /> Back to list
             </Link>
           </Button>
         }
@@ -425,11 +425,11 @@ export default function EmployeeCreatePage() {
             <Button type="submit" disabled={isLoading} className="flex-1">
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 size-4 animate-spin" /> Saving…
+                  <Loader2 className="size-4 animate-spin" /> Saving…
                 </>
               ) : (
                 <>
-                  <Save className="mr-2 size-4" /> Save Employee
+                  <Save className="size-4" /> Save Employee
                 </>
               )}
             </Button>

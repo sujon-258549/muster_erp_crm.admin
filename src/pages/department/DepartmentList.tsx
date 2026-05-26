@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch"
 import {
   ConfirmDialog,
   DataTable,
+  DataTableColumnsButton,
   DataTableToolbar,
   EmptyState,
   IconBadge,
@@ -84,6 +85,7 @@ export default function DepartmentListPage() {
     {
       key: "description",
       header: "Description",
+      hideOnMobile: true,
       cell: (d) => (
         <Text size="sm" tone="muted" className="line-clamp-2">
           {d.description || "—"}
@@ -130,6 +132,11 @@ export default function DepartmentListPage() {
     },
   ]
 
+  // Toolbar's "Filter Columns" dropdown owns its hidden-set + persists to
+  // localStorage keyed by `tableName`. Page just stores the filtered list.
+  const [visibleColumns, setVisibleColumns] =
+    useState<Column<Department>[]>(columns)
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -137,7 +144,7 @@ export default function DepartmentListPage() {
         description="Group employees by department for reporting and access scoping."
         actions={
           <Button onClick={openCreate}>
-            <Plus className="mr-2 size-4" /> New Department
+            <Plus className="size-4" /> New Department
           </Button>
         }
       />
@@ -147,11 +154,18 @@ export default function DepartmentListPage() {
         onChange={setSearch}
         placeholder="Search departments..."
         fetching={isFetching}
+        right={
+          <DataTableColumnsButton
+            tableName="departments"
+            columns={columns}
+            onVisibleColumnsChange={setVisibleColumns}
+          />
+        }
       />
 
       <DataTable<Department>
         data={departments}
-        columns={columns}
+        columns={visibleColumns}
         isLoading={isLoading && departments.length === 0}
         isFetching={isFetching}
         empty={
@@ -160,7 +174,7 @@ export default function DepartmentListPage() {
             title="No departments yet."
             action={
               <Button size="sm" onClick={openCreate}>
-                <Plus className="mr-1.5 size-4" /> Create Department
+                <Plus className="size-4" /> Create Department
               </Button>
             }
           />

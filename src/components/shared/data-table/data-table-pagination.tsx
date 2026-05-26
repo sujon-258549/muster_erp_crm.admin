@@ -11,6 +11,10 @@ interface DataTablePaginationProps {
 
 // Footer used inside DataTable's `footer` slot. Pure presentation —
 // it doesn't own state.
+//
+// Renders nothing when there's a single page (or none) — no point showing
+// "Page 1 of 1" with disabled Prev/Next buttons. Every list page picks this
+// behavior up automatically via the shared <DataTable footer={...} /> slot.
 export function DataTablePagination({
   page,
   totalPages,
@@ -18,6 +22,8 @@ export function DataTablePagination({
   showing,
   onPageChange,
 }: DataTablePaginationProps) {
+  if (totalPages <= 1) return null
+
   return (
     <div className="flex items-center justify-between border-t bg-muted/20 px-4 py-3 text-xs text-muted-foreground">
       <span>

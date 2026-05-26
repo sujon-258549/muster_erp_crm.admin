@@ -3,15 +3,16 @@ import { Link } from "react-router-dom"
 import { Ban, Plus, Trash2, UserMinus, Users as UsersIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import {
   ConfirmDialog,
   DataTable,
+  DataTableColumnsButton,
   DataTablePagination,
   DataTableToolbar,
   EmptyState,
   PageHeader,
   StatusBadge,
+  SummaryCard,
   Text,
   UserAvatar,
   pickEmployeeTone,
@@ -110,6 +111,7 @@ export default function EmployeeListPage() {
     {
       key: "contact",
       header: "Contact",
+      hideOnMobile: true,
       cell: (u) => (
         <div className="flex flex-col">
           <Text size="sm" tone="muted">
@@ -124,6 +126,7 @@ export default function EmployeeListPage() {
     {
       key: "designation",
       header: "Designation",
+      hideOnMobile: true,
       cell: (u) => (
         <Text size="sm" tone="muted">
           {u.designationName || "—"}
@@ -133,6 +136,7 @@ export default function EmployeeListPage() {
     {
       key: "department",
       header: "Department",
+      hideOnMobile: true,
       cell: (u) => (
         <Text size="sm" tone="muted">
           {u.departmentName || "—"}
@@ -200,6 +204,12 @@ export default function EmployeeListPage() {
     },
   ]
 
+  // The "Columns" dropdown in the toolbar owns its hidden-set internally;
+  // we just track which columns it tells us are visible and forward them
+  // to the table.
+  const [visibleColumns, setVisibleColumns] =
+    useState<Column<EmployeeRow>[]>(columns)
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -208,17 +218,38 @@ export default function EmployeeListPage() {
         actions={
           <Button asChild>
             <Link to={ROUTES.EMPLOYEES.CREATE}>
-              <Plus className="mr-2 size-4" />
+              <Plus className="size-4" />
               Create Employee
             </Link>
           </Button>
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <SummaryCard label="Total on page" value={summary.total} />
-        <SummaryCard label="Active" value={summary.active} tone="success" />
-        <SummaryCard label="Blocked" value={summary.blocked} tone="warn" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <SummaryCard
+          title="Total Employees"
+          value={total}
+          trend="03% This Week"
+          tone="violet"
+        />
+        <SummaryCard
+          title="On This Page"
+          value={summary.total}
+          trend="Up to date"
+          tone="sky"
+        />
+        <SummaryCard
+          title="Active"
+          value={summary.active}
+          trend="03% This Week"
+          tone="teal"
+        />
+        <SummaryCard
+          title="Blocked"
+          value={summary.blocked}
+          trend="03% This Week"
+          tone="rose"
+        />
       </div>
 
       <DataTableToolbar
@@ -229,6 +260,13 @@ export default function EmployeeListPage() {
         }}
         placeholder="Search by name, email or mobile..."
         fetching={isFetching}
+        right={
+          <DataTableColumnsButton
+            tableName="employees"
+            columns={columns}
+            onVisibleColumnsChange={setVisibleColumns}
+          />
+        }
       />
 
       {error && (
@@ -241,7 +279,7 @@ export default function EmployeeListPage() {
 
       <DataTable<EmployeeRow>
         data={employees}
-        columns={columns}
+        columns={visibleColumns}
         isLoading={isLoading && employees.length === 0}
         isFetching={isFetching}
         empty={
@@ -252,7 +290,7 @@ export default function EmployeeListPage() {
             action={
               <Button asChild size="sm">
                 <Link to={ROUTES.EMPLOYEES.CREATE}>
-                  <Plus className="mr-1.5 size-4" /> Create Employee
+                  <Plus className="size-4" /> Create Employee
                 </Link>
               </Button>
             }
@@ -294,29 +332,3 @@ export default function EmployeeListPage() {
   )
 }
 
-function SummaryCard({
-  label,
-  value,
-  tone,
-}: {
-  label: string
-  value: number
-  tone?: "success" | "warn"
-}) {
-  const ring =
-    tone === "success"
-      ? "ring-emerald-500/40 bg-emerald-500/5"
-      : tone === "warn"
-        ? "ring-amber-500/40 bg-amber-500/5"
-        : "ring-border bg-card"
-  return (
-    <Card className={`ring-1 ${ring}`}>
-      <CardContent className="p-4">
-        <Text size="xs" tone="muted" className="uppercase tracking-wide">
-          {label}
-        </Text>
-        <p className="mt-1 text-2xl font-semibold">{value}</p>
-      </CardContent>
-    </Card>
-  )
-}

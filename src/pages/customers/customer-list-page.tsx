@@ -10,7 +10,7 @@ export default function CustomerListPage() {
         description="Manage your CRM contacts"
         actions={
           <Button>
-            <Plus className="mr-2 size-4" /> New Customer
+            <Plus className="size-4" /> New Customer
           </Button>
         }
       />

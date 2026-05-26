@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -12,6 +13,10 @@ export interface Column<T> {
   width?: string
   className?: string
   headerClassName?: string
+  // Hint for responsive behavior. Columns marked `hideOnMobile` get
+  // `hidden md:table-cell` so they only render on tablet+ screens. Defaults
+  // to false (always visible).
+  hideOnMobile?: boolean
 }
 
 interface DataTableProps<T> {
@@ -28,14 +33,32 @@ interface DataTableProps<T> {
   footer?: React.ReactNode
   className?: string
   caption?: React.ReactNode
+  // Minimum width of the table itself. The outer wrapper keeps `overflow-x-auto`
+  // so on small screens the table scrolls horizontally instead of squishing.
+  minWidth?: string
 }
 
-const alignClass = (align: Column<any>["align"]) =>
+// Helpers below take only the primitive fields they need so they don't have
+// to mirror DataTable's generic — keeps the call sites simple.
+const alignClass = (align: Column<unknown>["align"]) =>
   align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left"
 
+const responsiveClass = (hideOnMobile: boolean | undefined) =>
+  hideOnMobile ? "hidden md:table-cell" : ""
+
 // A generic, presentation-only data table. Pages own the data fetching and
-// just pass `data` + `columns`. Composable bits like loading, empty state
-// and footer slots are built-in so list pages stay short.
+// just pass `data` + `columns`. Composable bits like loading, empty state,
+// pagination and column-visibility are layered on top via the sibling
+// helpers in this folder (DataTableToolbar, DataTablePagination,
+// DataTableColumnsButton, useColumnVisibility).
+//
+// Responsive: the wrapping div is `overflow-x-auto`, the table itself has a
+// configurable `min-w` so it doesn't squish on small screens. Columns can
+// opt out on mobile with `hideOnMobile: true`.
+//
+// `T extends Record<string, any>` is intentional — list rows commonly use
+// snake_case + camelCase keys and we don't want consumers fighting the
+// types. The `any` here is widened, never returned.
 export function DataTable<T extends Record<string, any>>({
   data,
   columns,
@@ -47,13 +70,14 @@ export function DataTable<T extends Record<string, any>>({
   footer,
   className,
   caption,
+  minWidth = "640px",
 }: DataTableProps<T>) {
   const keyFor = (row: T, index: number) =>
-    rowKey ? rowKey(row, index) : (row.id as string) ?? String(index)
+    rowKey ? rowKey(row, index) : ((row.id as string) ?? String(index))
 
   if (isLoading) {
     return (
-      <div className="grid place-items-center rounded-lg border bg-card py-16 text-muted-foreground">
+      <div className="grid place-items-center rounded-md border bg-card py-16 text-muted-foreground">
         <Loader2 className="size-6 animate-spin" />
       </div>
     )
@@ -66,27 +90,30 @@ export function DataTable<T extends Record<string, any>>({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-md border bg-card",
+        // Border-only chrome — no shadow. Keeps the table looking clean
+        // in both light and dark mode against any page background.
+        "overflow-hidden rounded-md border border-border/70 bg-card",
         isFetching && "ring-1 ring-primary/10",
         className,
       )}
     >
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm" style={{ minWidth }}>
           {caption && (
             <caption className="px-4 py-2 text-left text-xs text-muted-foreground">
               {caption}
             </caption>
           )}
-          <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
+          <thead className="border-b border-border/70 bg-muted/50 text-[11px] uppercase tracking-wider text-muted-foreground">
             <tr>
               {columns.map((col) => (
                 <th
                   key={col.key}
                   style={col.width ? { width: col.width } : undefined}
                   className={cn(
-                    "px-4 py-3 font-medium",
+                    "px-4 py-3 font-semibold",
                     alignClass(col.align),
+                    responsiveClass(col.hideOnMobile),
                     col.headerClassName,
                   )}
                 >
@@ -95,12 +122,12 @@ export function DataTable<T extends Record<string, any>>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-border/60">
             {data.map((row, index) => (
               <tr
                 key={keyFor(row, index)}
                 className={cn(
-                  "transition-colors hover:bg-accent/30",
+                  "transition-colors hover:bg-muted/40",
                   onRowClick && "cursor-pointer",
                 )}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
@@ -111,6 +138,7 @@ export function DataTable<T extends Record<string, any>>({
                     className={cn(
                       "px-4 py-3 align-middle",
                       alignClass(col.align),
+                      responsiveClass(col.hideOnMobile),
                       col.className,
                     )}
                   >

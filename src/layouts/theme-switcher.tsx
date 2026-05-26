@@ -42,7 +42,7 @@ export default function ThemeSwitcher() {
         <DropdownMenuLabel>Appearance</DropdownMenuLabel>
         {themeOptions.map(({ value, label, icon: Icon }) => (
           <DropdownMenuItem key={value} onClick={() => dispatch(themeSet(value))}>
-            <Icon className="mr-2 size-4" />
+            <Icon className="size-4" />
             <span>{label}</span>
             {theme === value && <Check className="ml-auto size-4" />}
           </DropdownMenuItem>

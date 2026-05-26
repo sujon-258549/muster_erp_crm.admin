@@ -138,7 +138,7 @@ export default function LoginPage() {
         </label>
 
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
+          {isLoading && <Loader2 className="size-4 animate-spin" />}
           {isLoading ? "Signing in..." : "Sign in"}
         </Button>
       </form>

@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch"
 import {
   ConfirmDialog,
   DataTable,
+  DataTableColumnsButton,
   DataTableToolbar,
   EmptyState,
   IconBadge,
@@ -87,6 +88,7 @@ export default function RoleListPage() {
     {
       key: "description",
       header: "Description",
+      hideOnMobile: true,
       cell: (r) => (
         <Text size="sm" tone="muted">
           {r.description || "—"}
@@ -118,7 +120,7 @@ export default function RoleListPage() {
             onClick={() => setPermRole(r)}
             title="Manage permissions"
           >
-            <KeyRound className="mr-1.5 size-4" /> Permission
+            <KeyRound className="size-4" /> Permission
           </Button>
           <Button
             size="icon-sm"
@@ -141,6 +143,11 @@ export default function RoleListPage() {
     },
   ]
 
+  // Toolbar's "Filter Columns" dropdown owns its hidden-set + persists to
+  // localStorage keyed by `tableName`. Page just stores the filtered list.
+  const [visibleColumns, setVisibleColumns] =
+    useState<Column<Role>[]>(columns)
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -148,7 +155,7 @@ export default function RoleListPage() {
         description="Define access roles and assign per-module permissions to each."
         actions={
           <Button onClick={openCreate}>
-            <Plus className="mr-2 size-4" /> New Role
+            <Plus className="size-4" /> New Role
           </Button>
         }
       />
@@ -158,11 +165,18 @@ export default function RoleListPage() {
         onChange={setSearch}
         placeholder="Search roles..."
         fetching={isFetching}
+        right={
+          <DataTableColumnsButton
+            tableName="roles"
+            columns={columns}
+            onVisibleColumnsChange={setVisibleColumns}
+          />
+        }
       />
 
       <DataTable<Role>
         data={roles}
-        columns={columns}
+        columns={visibleColumns}
         isLoading={isLoading && roles.length === 0}
         isFetching={isFetching}
         empty={
@@ -171,7 +185,7 @@ export default function RoleListPage() {
             title="No roles yet."
             action={
               <Button size="sm" onClick={openCreate}>
-                <Plus className="mr-1.5 size-4" /> Create Role
+                <Plus className="size-4" /> Create Role
               </Button>
             }
           />

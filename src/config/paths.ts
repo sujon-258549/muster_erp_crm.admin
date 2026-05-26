@@ -10,9 +10,10 @@ const mp = (key: ModuleKey): string => {
 
 export const ROUTES = {
   ROOT: "/",
+  // Keep these in sync with the route declarations in src/routes/index.tsx.
   AUTH: {
-    LOGIN: "/auth/login",
-    FORGOT_PASSWORD: "/auth/forgot-password",
+    LOGIN: "/login",
+    FORGOT_PASSWORD: "/forgot-password",
   },
   MODULES: {
     DASHBOARD: mp("dashboard"),

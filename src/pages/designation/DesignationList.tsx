@@ -2,38 +2,58 @@ import { useState } from "react"
 import { BadgeCheck, Pencil, Plus, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import {
   ConfirmDialog,
+  DataTable,
+  DataTableColumnsButton,
+  DataTablePagination,
   DataTableToolbar,
   EmptyState,
+  FormatDate,
   IconBadge,
   PageHeader,
   StatusBadge,
   Text,
+  type Column,
 } from "@/components/shared"
 import { useDebounce } from "@/hooks/use-debounce"
 import { useDesignation } from "@/hooks/data-fetch"
 import type { Designation } from "@/redux/features/designations"
 import { getErrorMessage } from "@/lib/errors"
+import { shortId } from "@/lib/format"
 import { DesignationFormModal } from "@/components/modal"
+
+// Page-size kept on the page itself so the API call signature stays
+// declarative: useDesignation({ page, limit, searchTerm }).
+const PAGE_SIZE = 10
 
 export default function DesignationListPage() {
   const [search, setSearch] = useState("")
+  const [page, setPage] = useState(1)
+  // Debounced search keeps the API quiet while the user is typing — the
+  // actual filtering then happens server-side via the `searchTerm` query.
   const debounced = useDebounce(search, 350)
 
   const {
     designations,
+    meta,
     isFetching,
     isLoading,
     deleteDesignation,
     toggleDesignationStatus,
-  } = useDesignation({ searchTerm: debounced || undefined, limit: 100 })
+  } = useDesignation({
+    searchTerm: debounced || undefined,
+    page,
+    limit: PAGE_SIZE,
+  })
 
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Designation | null>(null)
   const [pendingDelete, setPendingDelete] = useState<Designation | null>(null)
+
+  const totalPages = meta?.totalPages ?? 1
+  const total = meta?.total ?? 0
 
   const openCreate = () => {
     setEditing(null)
@@ -63,6 +83,89 @@ export default function DesignationListPage() {
     }
   }
 
+  // Column definitions — `hideOnMobile` keeps the table readable on phones
+  // by collapsing secondary columns below md.
+  const columns: Column<Designation>[] = [
+    {
+      key: "name",
+      header: "Name",
+      cell: (d) => (
+        <div className="flex items-center gap-3">
+          <IconBadge icon={BadgeCheck} />
+          <div className="min-w-0">
+            <div className="truncate font-medium">{d.name}</div>
+            <Text size="xs" tone="muted">
+              {shortId(d.id)}
+            </Text>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "description",
+      header: "Description",
+      hideOnMobile: true,
+      cell: (d) => (
+        <Text size="sm" tone="muted" className="line-clamp-2">
+          {d.description || "—"}
+        </Text>
+      ),
+    },
+    {
+      key: "createdAt",
+      header: "Created",
+      hideOnMobile: true,
+      cell: (d) => (
+        <Text size="sm" tone="muted">
+          <FormatDate value={d.createdAt} format="short" />
+        </Text>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      cell: (d) => (
+        <div className="flex items-center gap-2">
+          <Switch
+            checked={d.isActive}
+            onCheckedChange={() => onToggle(d.id)}
+          />
+          <StatusBadge tone={d.isActive ? "active" : "inactive"} />
+        </div>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      align: "right",
+      cell: (d) => (
+        <div className="flex justify-end gap-1">
+          <Button
+            size="icon-sm"
+            variant="soft"
+            onClick={() => openEdit(d)}
+            aria-label="Edit"
+          >
+            <Pencil />
+          </Button>
+          <Button
+            size="icon-sm"
+            variant="soft-destructive"
+            onClick={() => setPendingDelete(d)}
+            aria-label="Delete"
+          >
+            <Trash2 />
+          </Button>
+        </div>
+      ),
+    },
+  ]
+
+  // Toolbar's "Columns" dropdown owns its own visibility state and reports
+  // the filtered column list back here.
+  const [visibleColumns, setVisibleColumns] =
+    useState<Column<Designation>[]>(columns)
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -70,85 +173,59 @@ export default function DesignationListPage() {
         description="Job titles assigned to employees — e.g. Software Engineer, HR Manager."
         actions={
           <Button onClick={openCreate}>
-            <Plus className="mr-2 size-4" /> New Designation
+            <Plus className="size-4" /> New Designation
           </Button>
         }
       />
 
       <DataTableToolbar
         value={search}
-        onChange={setSearch}
+        onChange={(v) => {
+          // Reset to page 1 on every new search term so users don't see a
+          // stale page that no longer matches the query.
+          setPage(1)
+          setSearch(v)
+        }}
         placeholder="Search designations..."
         fetching={isFetching}
+        right={
+          <DataTableColumnsButton
+            tableName="designations"
+            columns={columns}
+            onVisibleColumnsChange={setVisibleColumns}
+          />
+        }
       />
 
-      {isLoading && designations.length === 0 ? (
-        <Card>
-          <CardContent className="py-12" />
-        </Card>
-      ) : designations.length === 0 ? (
-        <EmptyState
-          icon={BadgeCheck}
-          title="No designations yet."
-          action={
-            <Button size="sm" onClick={openCreate}>
-              <Plus className="mr-1.5 size-4" /> Create Designation
-            </Button>
-          }
-        />
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {designations.map((d) => (
-            <Card key={d.id}>
-              <CardContent className="space-y-3 p-5">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex items-start gap-3">
-                    <IconBadge icon={BadgeCheck} />
-                    <div className="min-w-0">
-                      <h3 className="truncate font-semibold">{d.name}</h3>
-                      {d.description && (
-                        <Text size="xs" tone="muted" className="line-clamp-2">
-                          {d.description}
-                        </Text>
-                      )}
-                    </div>
-                  </div>
-                  <StatusBadge tone={d.isActive ? "active" : "inactive"} />
-                </div>
-                <div className="flex items-center justify-between border-t pt-3">
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={d.isActive}
-                      onCheckedChange={() => onToggle(d.id)}
-                    />
-                    <Text size="xs" tone="muted">
-                      {d.isActive ? "Enabled" : "Disabled"}
-                    </Text>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button
-                      size="icon-sm"
-                      variant="soft"
-                      onClick={() => openEdit(d)}
-                      aria-label="Edit"
-                    >
-                      <Pencil />
-                    </Button>
-                    <Button
-                      size="icon-sm"
-                      variant="soft-destructive"
-                      onClick={() => setPendingDelete(d)}
-                      aria-label="Delete"
-                    >
-                      <Trash2 />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      <DataTable<Designation>
+        data={designations}
+        columns={visibleColumns}
+        isLoading={isLoading && designations.length === 0}
+        isFetching={isFetching}
+        empty={
+          <EmptyState
+            icon={BadgeCheck}
+            title="No designations yet."
+            action={
+              <Button size="sm" onClick={openCreate}>
+                <Plus className="size-4" /> Create Designation
+              </Button>
+            }
+          />
+        }
+        footer={
+          designations.length > 0 ? (
+            <DataTablePagination
+              page={page}
+              totalPages={totalPages}
+              total={total}
+              pageSize={PAGE_SIZE}
+              showing={designations.length}
+              onPageChange={setPage}
+            />
+          ) : null
+        }
+      />
 
       <DesignationFormModal
         open={formOpen}

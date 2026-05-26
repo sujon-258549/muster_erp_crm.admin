@@ -64,10 +64,10 @@ export default function Navbar() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <UserIcon className="mr-2 size-4" /> Profile
+              <UserIcon className="size-4" /> Profile
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => dispatch(loggedOut())}>
-              <LogOut className="mr-2 size-4" /> Logout
+              <LogOut className="size-4" /> Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
