@@ -14,10 +14,10 @@ import {
   UserCircle2,
 } from "lucide-react"
 import { toast } from "sonner"
+import { Select as AntSelect } from "antd"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import {
   Card,
@@ -229,15 +229,19 @@ export default function EmployeeCreatePage() {
                 </div>
               </FormField>
               <FormField label="Gender">
-                <Select
-                  value={form.gender}
-                  onChange={(e) => update("gender", e.target.value)}
-                >
-                  <option value="">Select gender</option>
-                  <option value="MALE">Male</option>
-                  <option value="FEMALE">Female</option>
-                  <option value="OTHER">Other</option>
-                </Select>
+                <AntSelect
+                  className="w-full"
+                  size="large"
+                  allowClear
+                  value={form.gender || undefined}
+                  onChange={(value) => update("gender", value ?? "")}
+                  placeholder="Select gender"
+                  options={[
+                    { value: "MALE", label: "Male" },
+                    { value: "FEMALE", label: "Female" },
+                    { value: "OTHER", label: "Other" },
+                  ]}
+                />
               </FormField>
               <FormField label="Date of Birth">
                 <Input
@@ -247,20 +251,23 @@ export default function EmployeeCreatePage() {
                 />
               </FormField>
               <FormField label="Blood Group">
-                <Select
-                  value={form.bloodGroup}
-                  onChange={(e) => update("bloodGroup", e.target.value)}
-                >
-                  <option value="">Select blood group</option>
-                  {BLOOD_GROUPS.map((b) => (
-                    <option key={b} value={b}>
-                      {b
-                        .replace("_", " ")
-                        .replace("POSITIVE", "+")
-                        .replace("NEGATIVE", "−")}
-                    </option>
-                  ))}
-                </Select>
+                <AntSelect
+                  className="w-full"
+                  size="large"
+                  allowClear
+                  showSearch
+                  optionFilterProp="label"
+                  value={form.bloodGroup || undefined}
+                  onChange={(value) => update("bloodGroup", value ?? "")}
+                  placeholder="Select blood group"
+                  options={BLOOD_GROUPS.map((b) => ({
+                    value: b,
+                    label: b
+                      .replace("_", " ")
+                      .replace("POSITIVE", "+")
+                      .replace("NEGATIVE", "−"),
+                  }))}
+                />
               </FormField>
               <FormField label="NID">
                 <Input
@@ -354,43 +361,43 @@ export default function EmployeeCreatePage() {
             </CardHeader>
             <CardContent className="grid gap-4">
               <FormField label="Role">
-                <Select
-                  value={form.roleId}
-                  onChange={(e) => update("roleId", e.target.value)}
-                >
-                  <option value="">Select role</option>
-                  {roles.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.role}
-                    </option>
-                  ))}
-                </Select>
+                <AntSelect
+                  className="w-full"
+                  size="large"
+                  allowClear
+                  showSearch
+                  optionFilterProp="label"
+                  value={form.roleId || undefined}
+                  onChange={(value) => update("roleId", value ?? "")}
+                  placeholder="Select role"
+                  options={roles.map((r) => ({ value: r.id, label: r.role }))}
+                />
               </FormField>
               <FormField label="Department">
-                <Select
-                  value={form.departmentId}
-                  onChange={(e) => update("departmentId", e.target.value)}
-                >
-                  <option value="">Select department</option>
-                  {departments.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name}
-                    </option>
-                  ))}
-                </Select>
+                <AntSelect
+                  className="w-full"
+                  size="large"
+                  allowClear
+                  showSearch
+                  optionFilterProp="label"
+                  value={form.departmentId || undefined}
+                  onChange={(value) => update("departmentId", value ?? "")}
+                  placeholder="Select department"
+                  options={departments.map((d) => ({ value: d.id, label: d.name }))}
+                />
               </FormField>
               <FormField label="Designation">
-                <Select
-                  value={form.designationId}
-                  onChange={(e) => update("designationId", e.target.value)}
-                >
-                  <option value="">Select designation</option>
-                  {designations.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name}
-                    </option>
-                  ))}
-                </Select>
+                <AntSelect
+                  className="w-full"
+                  size="large"
+                  allowClear
+                  showSearch
+                  optionFilterProp="label"
+                  value={form.designationId || undefined}
+                  onChange={(value) => update("designationId", value ?? "")}
+                  placeholder="Select designation"
+                  options={designations.map((d) => ({ value: d.id, label: d.name }))}
+                />
               </FormField>
             </CardContent>
           </Card>
