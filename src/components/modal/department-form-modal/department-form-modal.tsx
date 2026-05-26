@@ -23,12 +23,14 @@ interface DepartmentFormModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   initial?: Department | null
+  onCreated?: (dept: Department) => void
 }
 
 export function DepartmentFormModal({
   open,
   onOpenChange,
   initial,
+  onCreated,
 }: DepartmentFormModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -40,6 +42,7 @@ export function DepartmentFormModal({
           key={initial?.id ?? "new"}
           initial={initial ?? null}
           onClose={() => onOpenChange(false)}
+          onCreated={onCreated}
         />
       </DialogContent>
     </Dialog>
@@ -64,9 +67,11 @@ function makeInitial(initial: Department | null): FormState {
 function DepartmentForm({
   initial,
   onClose,
+  onCreated,
 }: {
   initial: Department | null
   onClose: () => void
+  onCreated?: (dept: Department) => void
 }) {
   const [form, setForm] = useState<FormState>(() => makeInitial(initial))
   const { createDepartment, updateDepartment, isLoading } = useDepartment()
@@ -90,12 +95,13 @@ function DepartmentForm({
         }).unwrap()
         toast.success("Department updated")
       } else {
-        await createDepartment({
+        const res = await createDepartment({
           name: form.name.trim(),
           description: form.description.trim() || undefined,
           isActive: form.isActive,
         }).unwrap()
         toast.success("Department created")
+        if (res?.data) onCreated?.(res.data)
       }
       onClose()
     } catch (err) {
