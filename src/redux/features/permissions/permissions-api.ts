@@ -72,6 +72,23 @@ export const permissionsApi = baseApi.injectEndpoints({
       query: (id) => ({ url: `/permission/${id}`, method: "DELETE" }),
       invalidatesTags: [LIST_TAG],
     }),
+
+    // Atomic bulk-sync of a role's full permission map. Backend does
+    // upsert + delete inside a single transaction.
+    replaceRolePermissions: builder.mutation<
+      ApiResponse<RolePermission[]>,
+      { roleId: string; permissions: { module: string; permissions: string[] }[] }
+    >({
+      query: ({ roleId, permissions }) => ({
+        url: `/permission/role/${roleId}`,
+        method: "PUT",
+        body: { permissions },
+      }),
+      invalidatesTags: (_r, _e, { roleId }) => [
+        LIST_TAG,
+        { type: "Permission", id: `role:${roleId}` },
+      ],
+    }),
   }),
   overrideExisting: false,
 })
@@ -82,4 +99,5 @@ export const {
   useCreatePermissionMutation,
   useUpdatePermissionMutation,
   useDeletePermissionMutation,
+  useReplaceRolePermissionsMutation,
 } = permissionsApi

@@ -25,7 +25,7 @@ import { useAppDispatch } from "@/redux/hooks"
 import { loggedOut } from "@/redux/features/auth/auth-slice"
 import { useCurrentUser } from "@/hooks/use-permission"
 import { hasPermission, isSuperAdmin } from "@/lib/permissions"
-import { MODULES, type AppModule } from "@/config/modules"
+import { MODULES, type AppModule, type AppModuleChild } from "@/config/modules"
 import { ROUTES } from "@/config/paths"
 import { siteConfig } from "@/config/site"
 
@@ -35,14 +35,32 @@ export default function AppSidebar() {
   const dispatch = useAppDispatch()
   const user = useCurrentUser()
 
-  // Super-admin → all modules. Otherwise filter by permission. If user has
-  // no permissions list yet (fresh session / legacy shape), fall back to all
-  // modules so the sidebar is never empty for an authenticated user.
+  // Sidebar visibility uses sub-module keys (matches what the permission
+  // modal saves to the backend).
+  //   - Parent with children → keep child if user has its key; drop the
+  //     whole parent if no child is permitted.
+  //   - Top-level (no children) → check the parent's own key.
+  // Super-admin sees everything. Users with no explicit grants yet fall
+  // back to all modules so the sidebar is never empty during onboarding.
   const accessibleModules: AppModule[] = (() => {
     if (!user || isSuperAdmin(user)) return MODULES
     const hasAnyExplicit = (user.permissions?.length ?? 0) > 0
     if (!hasAnyExplicit) return MODULES
-    return MODULES.filter((m) => hasPermission(user, m.key))
+
+    const result: AppModule[] = []
+    for (const mod of MODULES) {
+      if (mod.children && mod.children.length > 0) {
+        const visibleChildren: AppModuleChild[] = mod.children.filter((c) =>
+          hasPermission(user, c.key),
+        )
+        if (visibleChildren.length > 0) {
+          result.push({ ...mod, children: visibleChildren })
+        }
+      } else if (hasPermission(user, mod.key)) {
+        result.push(mod)
+      }
+    }
+    return result
   })()
 
   const isChildActive = (children?: AppModule["children"]) =>

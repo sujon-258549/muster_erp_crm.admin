@@ -3,6 +3,7 @@ import {
   useDeletePermissionMutation,
   useGetPermissionsByRoleQuery,
   useListPermissionsQuery,
+  useReplaceRolePermissionsMutation,
   useUpdatePermissionMutation,
   type RolePermissionListParams,
 } from "@/redux/features/permissions"
@@ -29,6 +30,8 @@ export const useRolePermission = (
     useUpdatePermissionMutation()
   const [deletePermission, { isLoading: isDeleting }] =
     useDeletePermissionMutation()
+  const [replaceRolePermissions, { isLoading: isReplacing }] =
+    useReplaceRolePermissionsMutation()
 
   return {
     response: listRes,
@@ -37,11 +40,17 @@ export const useRolePermission = (
     rolePermissions: perRole.data?.data ?? [],
     isRolePermissionLoading: perRole.isLoading || perRole.isFetching,
     isLoading:
-      isLoading || isFetching || isCreating || isUpdating || isDeleting,
+      isLoading ||
+      isFetching ||
+      isCreating ||
+      isUpdating ||
+      isDeleting ||
+      isReplacing,
     isFetching,
     refetch,
     createPermission,
     updatePermission,
     deletePermission,
+    replaceRolePermissions,
   }
 }

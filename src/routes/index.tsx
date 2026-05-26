@@ -5,6 +5,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom"
 // ─────────────────────────────────────────────────────────────────────────────
 import ProtectedRoute from "./ProtectedRoute"
 import PublicRoute from "./PublicRoute"
+import RequirePermission from "./RequirePermission"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Layouts
@@ -82,22 +83,94 @@ export const router = createBrowserRouter([
       { index: true, element: <Dashboard /> },
       { path: "dashboard", element: <Dashboard /> },
 
-      // Employee Management
-      { path: "employees", element: <EmployeeList /> },
-      { path: "employees/new", element: <EmployeeCreate /> },
-      { path: "employees/departments", element: <DepartmentList /> },
-      { path: "employees/roles", element: <RoleList /> },
-      { path: "employees/designations", element: <DesignationList /> },
+      // Employee Management — each sub-module guarded by its own key.
+      // Keys match what the permission modal writes to the backend.
+      {
+        path: "employees",
+        element: (
+          <RequirePermission moduleKey="employees">
+            <EmployeeList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "employees/new",
+        element: (
+          <RequirePermission moduleKey="employees">
+            <EmployeeCreate />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "employees/departments",
+        element: (
+          <RequirePermission moduleKey="departments">
+            <DepartmentList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "employees/roles",
+        element: (
+          <RequirePermission moduleKey="roles">
+            <RoleList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "employees/designations",
+        element: (
+          <RequirePermission moduleKey="designations">
+            <DesignationList />
+          </RequirePermission>
+        ),
+      },
 
       // Back-compat: legacy /users URLs land in the new employee list.
       { path: "users", element: <Navigate to="/employees" replace /> },
 
-      // CRM / ERP module placeholders
-      { path: "customers", element: <CustomerList /> },
-      { path: "products", element: <ProductList /> },
-      { path: "inventory", element: <InventoryPage /> },
-      { path: "invoices", element: <InvoiceList /> },
-      { path: "settings", element: <SettingsPage /> },
+      // CRM / ERP module placeholders — parents without children use their
+      // own key; parents with children use the "list" child key.
+      {
+        path: "customers",
+        element: (
+          <RequirePermission moduleKey="customers.list">
+            <CustomerList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "products",
+        element: (
+          <RequirePermission moduleKey="products.list">
+            <ProductList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "inventory",
+        element: (
+          <RequirePermission moduleKey="inventory">
+            <InventoryPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "invoices",
+        element: (
+          <RequirePermission moduleKey="invoices">
+            <InvoiceList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "settings",
+        element: (
+          <RequirePermission moduleKey="settings">
+            <SettingsPage />
+          </RequirePermission>
+        ),
+      },
 
       // 404 — any unmatched URL inside the protected tree.
       { path: "*", element: <NotFound /> },

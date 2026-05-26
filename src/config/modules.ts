@@ -30,12 +30,21 @@ export type ModuleKey =
 
 export type ModuleGroup = "Overview" | "CRM" | "ERP" | "System";
 
+// A child entry doubles as its own permission item when `key` is set —
+// the permission modal then drops the parent in favor of these children.
+// Use a stable key (kebab/dot case) so backend rows survive label edits.
+export interface AppModuleChild {
+  key: string;
+  label: string;
+  path: string;
+}
+
 export interface AppModule {
   key: ModuleKey;
   label: string;
   path: string;
   icon: LucideIcon;
-  children?: { label: string; path: string }[];
+  children?: AppModuleChild[];
 }
 
 export const MODULES: AppModule[] = [
@@ -51,9 +60,13 @@ export const MODULES: AppModule[] = [
     path: "/customers",
     icon: Users,
     children: [
-      { label: "All Customers", path: "/customers" },
-      { label: "New Customer", path: "/customers/new" },
-      { label: "Leads", path: "/customers?status=lead" },
+      { key: "customers.list", label: "All Customers", path: "/customers" },
+      { key: "customers.new", label: "New Customer", path: "/customers/new" },
+      {
+        key: "customers.leads",
+        label: "Leads",
+        path: "/customers?status=lead",
+      },
     ],
   },
   {
@@ -62,8 +75,8 @@ export const MODULES: AppModule[] = [
     path: "/products",
     icon: Package,
     children: [
-      { label: "All Products", path: "/products" },
-      { label: "New Product", path: "/products/new" },
+      { key: "products.list", label: "All Products", path: "/products" },
+      { key: "products.new", label: "New Product", path: "/products/new" },
     ],
   },
   {
@@ -84,10 +97,18 @@ export const MODULES: AppModule[] = [
     path: "/employees",
     icon: UsersRound,
     children: [
-      { label: "Employee List", path: "/employees" },
-      { label: "Department List", path: "/employees/departments" },
-      { label: "Role List", path: "/employees/roles" },
-      { label: "Designation List", path: "/employees/designations" },
+      { key: "employees", label: "Employee List", path: "/employees" },
+      {
+        key: "departments",
+        label: "Department List",
+        path: "/employees/departments",
+      },
+      { key: "roles", label: "Role List", path: "/employees/roles" },
+      {
+        key: "designations",
+        label: "Designation List",
+        path: "/employees/designations",
+      },
     ],
   },
   {
@@ -109,3 +130,7 @@ export const MODULE_GROUPS: ModuleGroup[] = [
 
 export const getModule = (key: ModuleKey): AppModule | undefined =>
   MODULES.find((m) => m.key === key);
+
+// Note: the role-permission modal flattens MODULES into per-sub-module
+// permission items with custom action lists. See
+// `src/config/permission-catalog.ts` for that derivation.

@@ -1,4 +1,3 @@
-import type { ModuleKey } from "@/config/modules"
 import type { User, UserRole } from "@/types/user"
 
 // Backend payload can be one of several shapes — flatten + map into the
@@ -9,7 +8,7 @@ interface BackendUser {
   email?: string
   name?: string
   createdAt?: string
-  permissions?: ModuleKey[] | string[]
+  permissions?: string[]
   role?: string | { role?: string }
   profile?: {
     name?: string
@@ -48,7 +47,7 @@ export function normalizeUser(raw: BackendUser | null | undefined): User {
     avatar:
       raw.profile?.profilePhoto ?? raw.profile?.photo ?? undefined,
     role: normalizeRole(raw.role),
-    permissions: (raw.permissions ?? []) as ModuleKey[],
+    permissions: raw.permissions ?? [],
     createdAt: raw.createdAt ?? new Date().toISOString(),
   }
 }

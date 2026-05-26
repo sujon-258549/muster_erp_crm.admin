@@ -62,6 +62,8 @@ interface SummaryCardProps {
   // when omitted a decorative default wave is rendered.
   data?: number[]
   className?: string
+  // When provided, the card becomes a button — used for drill-down modals.
+  onClick?: () => void
 }
 
 // Default decorative path — gentle wave with a peak near the right, mimics
@@ -122,6 +124,7 @@ export function SummaryCard({
   tone = "violet",
   data,
   className,
+  onClick,
 }: SummaryCardProps) {
   // useId keeps each gradient id unique so multiple cards on the same page
   // don't share/override gradients.
@@ -131,7 +134,27 @@ export function SummaryCard({
   const { line, area } = buildPaths(data ?? DEFAULT_DATA, VIEW_W, VIEW_H)
 
   return (
-    <div className={cn(summaryCardVariants({ tone }), className)}>
+    <div
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                onClick()
+              }
+            }
+          : undefined
+      }
+      className={cn(
+        summaryCardVariants({ tone }),
+        onClick &&
+          "cursor-pointer transition-transform hover:-translate-y-0.5 hover:ring-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
+        className,
+      )}
+    >
       {/* Foreground content — sits above the sparkline thanks to z-10. */}
       <div className="relative z-10 space-y-0.5">
         <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/85">

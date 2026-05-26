@@ -4,6 +4,13 @@ import { Ban, Plus, Trash2, UserMinus, Users as UsersIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
   ConfirmDialog,
   DataTable,
   DataTableColumnsButton,
@@ -28,12 +35,37 @@ import type { EmployeeRow } from "@/redux/features/users"
 
 const PAGE_SIZE = 10
 
+type SummaryFilter = "all" | "page" | "active" | "blocked"
+
+const SUMMARY_META: Record<
+  SummaryFilter,
+  { title: string; description: string }
+> = {
+  all: {
+    title: "Total Employees",
+    description: "All employees currently loaded.",
+  },
+  page: {
+    title: "On This Page",
+    description: "Employees shown on the current page.",
+  },
+  active: {
+    title: "Active Employees",
+    description: "Signed-in capable, not blocked.",
+  },
+  blocked: {
+    title: "Blocked Employees",
+    description: "Currently blocked from logging in.",
+  },
+}
+
 export default function EmployeeListPage() {
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
   const debounced = useDebounce(search, 350)
   const currentUser = useCurrentUser()
   const currentUserId = currentUser?.id
+  const [summaryFilter, setSummaryFilter] = useState<SummaryFilter | null>(null)
 
   const {
     employees,
@@ -63,6 +95,20 @@ export default function EmployeeListPage() {
     const blocked = employees.filter((e) => e.isBlocked).length
     return { active, blocked, total: employees.length }
   }, [employees])
+
+  const summaryEmployees = useMemo(() => {
+    if (!summaryFilter) return []
+    switch (summaryFilter) {
+      case "active":
+        return employees.filter((e) => e.isActive && !e.isBlocked)
+      case "blocked":
+        return employees.filter((e) => e.isBlocked)
+      case "all":
+      case "page":
+      default:
+        return employees
+    }
+  }, [employees, summaryFilter])
 
   const onBlock = async (id: string) => {
     if (id === currentUserId) {
@@ -255,24 +301,28 @@ export default function EmployeeListPage() {
           value={total}
           trend="03% This Week"
           tone="violet"
+          onClick={() => setSummaryFilter("all")}
         />
         <SummaryCard
           title="On This Page"
           value={summary.total}
           trend="Up to date"
           tone="sky"
+          onClick={() => setSummaryFilter("page")}
         />
         <SummaryCard
           title="Active"
           value={summary.active}
           trend="03% This Week"
           tone="teal"
+          onClick={() => setSummaryFilter("active")}
         />
         <SummaryCard
           title="Blocked"
           value={summary.blocked}
           trend="03% This Week"
           tone="rose"
+          onClick={() => setSummaryFilter("blocked")}
         />
       </div>
 
@@ -333,6 +383,65 @@ export default function EmployeeListPage() {
           ) : null
         }
       />
+
+      <Dialog
+        open={Boolean(summaryFilter)}
+        onOpenChange={(v) => !v && setSummaryFilter(null)}
+      >
+        <DialogContent className="max-h-[85vh] overflow-hidden sm:max-w-2xl">
+          {summaryFilter && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <UsersIcon className="size-5 text-primary" />
+                  {SUMMARY_META[summaryFilter].title}
+                </DialogTitle>
+                <DialogDescription>
+                  {SUMMARY_META[summaryFilter].description}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="my-4 max-h-[60vh] overflow-y-auto rounded-md border">
+                {summaryEmployees.length === 0 ? (
+                  <div className="flex flex-col items-center gap-2 py-12 text-muted-foreground">
+                    <UsersIcon className="size-8 opacity-50" />
+                    <Text size="sm" tone="muted">
+                      No matching employees on this page.
+                    </Text>
+                  </div>
+                ) : (
+                  <ul className="divide-y">
+                    {summaryEmployees.map((u) => (
+                      <li
+                        key={u.id}
+                        className="flex items-center gap-3 px-4 py-3"
+                      >
+                        <UserAvatar name={u.name} src={u.avatar} />
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate font-medium">
+                            {u.name || "—"}
+                          </div>
+                          <Text size="xs" tone="muted" className="truncate">
+                            {u.email || ""}
+                            {u.mobile ? ` · ${u.mobile}` : ""}
+                          </Text>
+                        </div>
+                        {u.isBlocked ? (
+                          <StatusBadge tone="blocked" />
+                        ) : u.isDeleted ? (
+                          <StatusBadge tone="deleted" />
+                        ) : (
+                          <StatusBadge tone={pickEmployeeTone(u)} />
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={Boolean(pendingSoftDelete)}
