@@ -77,7 +77,7 @@ export function DataTable<T extends Record<string, any>>({
 
   if (isLoading) {
     return (
-      <div className="grid place-items-center rounded-md border bg-card py-16 text-muted-foreground">
+      <div className="grid place-items-center rounded-md border bg-card py-16 text-muted-foreground shadow-xs">
         <Loader2 className="size-6 animate-spin" />
       </div>
     )
@@ -90,9 +90,7 @@ export function DataTable<T extends Record<string, any>>({
   return (
     <div
       className={cn(
-        // Border-only chrome — no shadow. Keeps the table looking clean
-        // in both light and dark mode against any page background.
-        "overflow-hidden rounded-md border border-border/70 bg-card",
+        "overflow-hidden rounded-md border bg-card text-card-foreground shadow-xs",
         isFetching && "ring-1 ring-primary/10",
         className,
       )}

@@ -14,8 +14,8 @@ import {
   UserCircle2,
 } from "lucide-react"
 import { toast } from "sonner"
-import { Select as AntSelect } from "antd"
 import { Button } from "@/components/ui/button"
+import { Combobox } from "@/components/ui/combobox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -28,6 +28,11 @@ import {
 } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { FormField, PageHeader, Text } from "@/components/shared"
+import {
+  DepartmentFormModal,
+  DesignationFormModal,
+  RoleFormModal,
+} from "@/components/modal"
 import {
   useDepartment,
   useDesignation,
@@ -94,6 +99,9 @@ export default function EmployeeCreatePage() {
   const navigate = useNavigate()
   const [form, setForm] = useState<FormState>(initialState)
   const [showPassword, setShowPassword] = useState(false)
+  const [roleModalOpen, setRoleModalOpen] = useState(false)
+  const [deptModalOpen, setDeptModalOpen] = useState(false)
+  const [desigModalOpen, setDesigModalOpen] = useState(false)
 
   const { roles } = useRole({ limit: 100 })
   const { departments } = useDepartment({ limit: 100 })
@@ -229,12 +237,9 @@ export default function EmployeeCreatePage() {
                 </div>
               </FormField>
               <FormField label="Gender">
-                <AntSelect
-                  className="w-full"
-                  size="large"
-                  allowClear
-                  value={form.gender || undefined}
-                  onChange={(value) => update("gender", value ?? "")}
+                <Combobox
+                  value={form.gender}
+                  onChange={(value) => update("gender", value)}
                   placeholder="Select gender"
                   options={[
                     { value: "MALE", label: "Male" },
@@ -251,14 +256,9 @@ export default function EmployeeCreatePage() {
                 />
               </FormField>
               <FormField label="Blood Group">
-                <AntSelect
-                  className="w-full"
-                  size="large"
-                  allowClear
-                  showSearch
-                  optionFilterProp="label"
-                  value={form.bloodGroup || undefined}
-                  onChange={(value) => update("bloodGroup", value ?? "")}
+                <Combobox
+                  value={form.bloodGroup}
+                  onChange={(value) => update("bloodGroup", value)}
                   placeholder="Select blood group"
                   options={BLOOD_GROUPS.map((b) => ({
                     value: b,
@@ -361,42 +361,42 @@ export default function EmployeeCreatePage() {
             </CardHeader>
             <CardContent className="grid gap-4">
               <FormField label="Role">
-                <AntSelect
-                  className="w-full"
-                  size="large"
-                  allowClear
-                  showSearch
-                  optionFilterProp="label"
-                  value={form.roleId || undefined}
-                  onChange={(value) => update("roleId", value ?? "")}
+                <Combobox
+                  value={form.roleId}
+                  onChange={(value) => update("roleId", value)}
                   placeholder="Select role"
-                  options={roles.map((r) => ({ value: r.id, label: r.role }))}
+                  options={roles.map((r) => ({
+                    value: r.id,
+                    label: r.role ?? "—",
+                  }))}
+                  onAddNew={() => setRoleModalOpen(true)}
+                  addNewLabel="Add new role"
                 />
               </FormField>
               <FormField label="Department">
-                <AntSelect
-                  className="w-full"
-                  size="large"
-                  allowClear
-                  showSearch
-                  optionFilterProp="label"
-                  value={form.departmentId || undefined}
-                  onChange={(value) => update("departmentId", value ?? "")}
+                <Combobox
+                  value={form.departmentId}
+                  onChange={(value) => update("departmentId", value)}
                   placeholder="Select department"
-                  options={departments.map((d) => ({ value: d.id, label: d.name }))}
+                  options={departments.map((d) => ({
+                    value: d.id,
+                    label: d.name ?? "—",
+                  }))}
+                  onAddNew={() => setDeptModalOpen(true)}
+                  addNewLabel="Add new department"
                 />
               </FormField>
               <FormField label="Designation">
-                <AntSelect
-                  className="w-full"
-                  size="large"
-                  allowClear
-                  showSearch
-                  optionFilterProp="label"
-                  value={form.designationId || undefined}
-                  onChange={(value) => update("designationId", value ?? "")}
+                <Combobox
+                  value={form.designationId}
+                  onChange={(value) => update("designationId", value)}
                   placeholder="Select designation"
-                  options={designations.map((d) => ({ value: d.id, label: d.name }))}
+                  options={designations.map((d) => ({
+                    value: d.id,
+                    label: d.name,
+                  }))}
+                  onAddNew={() => setDesigModalOpen(true)}
+                  addNewLabel="Add new designation"
                 />
               </FormField>
             </CardContent>
@@ -451,6 +451,22 @@ export default function EmployeeCreatePage() {
           </div>
         </div>
       </form>
+
+      <RoleFormModal
+        open={roleModalOpen}
+        onOpenChange={setRoleModalOpen}
+        onCreated={(role) => update("roleId", role.id)}
+      />
+      <DepartmentFormModal
+        open={deptModalOpen}
+        onOpenChange={setDeptModalOpen}
+        onCreated={(dept) => update("departmentId", dept.id)}
+      />
+      <DesignationFormModal
+        open={desigModalOpen}
+        onOpenChange={setDesigModalOpen}
+        onCreated={(d) => update("designationId", d.id)}
+      />
     </div>
   )
 }

@@ -23,12 +23,14 @@ interface DesignationFormModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   initial?: Designation | null
+  onCreated?: (designation: Designation) => void
 }
 
 export function DesignationFormModal({
   open,
   onOpenChange,
   initial,
+  onCreated,
 }: DesignationFormModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -37,6 +39,7 @@ export function DesignationFormModal({
           key={initial?.id ?? "new"}
           initial={initial ?? null}
           onClose={() => onOpenChange(false)}
+          onCreated={onCreated}
         />
       </DialogContent>
     </Dialog>
@@ -61,9 +64,11 @@ function makeInitial(initial: Designation | null): FormState {
 function DesignationForm({
   initial,
   onClose,
+  onCreated,
 }: {
   initial: Designation | null
   onClose: () => void
+  onCreated?: (designation: Designation) => void
 }) {
   const [form, setForm] = useState<FormState>(() => makeInitial(initial))
   const { createDesignation, updateDesignation, isLoading } = useDesignation()
@@ -87,12 +92,13 @@ function DesignationForm({
         }).unwrap()
         toast.success("Designation updated")
       } else {
-        await createDesignation({
+        const res = await createDesignation({
           name: form.name.trim(),
           description: form.description.trim() || undefined,
           isActive: form.isActive,
         }).unwrap()
         toast.success("Designation created")
+        if (res?.data) onCreated?.(res.data)
       }
       onClose()
     } catch (err) {

@@ -20,6 +20,7 @@ import {
 } from "@/components/shared"
 import { useDebounce } from "@/hooks/use-debounce"
 import { useEmployee } from "@/hooks/data-fetch"
+import { useCurrentUser } from "@/hooks/use-permission"
 import { ROUTES } from "@/config/paths"
 import { shortId } from "@/lib/format"
 import { getErrorMessage } from "@/lib/errors"
@@ -31,6 +32,8 @@ export default function EmployeeListPage() {
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
   const debounced = useDebounce(search, 350)
+  const currentUser = useCurrentUser()
+  const currentUserId = currentUser?.id
 
   const {
     employees,
@@ -62,6 +65,10 @@ export default function EmployeeListPage() {
   }, [employees])
 
   const onBlock = async (id: string) => {
+    if (id === currentUserId) {
+      toast.error("You can't block your own account")
+      return
+    }
     try {
       await blockEmployee(id).unwrap()
       toast.success("Block status updated")
@@ -72,6 +79,11 @@ export default function EmployeeListPage() {
 
   const confirmSoftDelete = async () => {
     if (!pendingSoftDelete) return
+    if (pendingSoftDelete.id === currentUserId) {
+      toast.error("You can't delete your own account")
+      setPendingSoftDelete(null)
+      return
+    }
     try {
       await softDeleteEmployee(pendingSoftDelete.id).unwrap()
       toast.success("Employee soft-deleted")
@@ -83,6 +95,11 @@ export default function EmployeeListPage() {
 
   const confirmHardDelete = async () => {
     if (!pendingDelete) return
+    if (pendingDelete.id === currentUserId) {
+      toast.error("You can't delete your own account")
+      setPendingDelete(null)
+      return
+    }
     try {
       await deleteEmployee(pendingDelete.id).unwrap()
       toast.success("Employee deleted")
@@ -170,37 +187,44 @@ export default function EmployeeListPage() {
       key: "actions",
       header: "Actions",
       align: "right",
-      cell: (u) => (
-        <div className="flex justify-end gap-1">
-          <Button
-            size="icon-sm"
-            variant="ghost"
-            onClick={() => onBlock(u.id)}
-            aria-label="Toggle block"
-            title="Toggle block"
-          >
-            <Ban />
-          </Button>
-          <Button
-            size="icon-sm"
-            variant="soft-warning"
-            onClick={() => setPendingSoftDelete(u)}
-            aria-label="Soft delete"
-            title="Soft delete"
-          >
-            <UserMinus />
-          </Button>
-          <Button
-            size="icon-sm"
-            variant="soft-destructive"
-            onClick={() => setPendingDelete(u)}
-            aria-label="Delete"
-            title="Delete"
-          >
-            <Trash2 />
-          </Button>
-        </div>
-      ),
+      cell: (u) => {
+        const isSelf = u.id === currentUserId
+        const selfTitle = "You can't perform this action on your own account"
+        return (
+          <div className="flex justify-end gap-1">
+            <Button
+              size="icon-sm"
+              variant="ghost"
+              onClick={() => onBlock(u.id)}
+              disabled={isSelf}
+              aria-label="Toggle block"
+              title={isSelf ? selfTitle : "Toggle block"}
+            >
+              <Ban />
+            </Button>
+            <Button
+              size="icon-sm"
+              variant="soft-warning"
+              onClick={() => setPendingSoftDelete(u)}
+              disabled={isSelf}
+              aria-label="Soft delete"
+              title={isSelf ? selfTitle : "Soft delete"}
+            >
+              <UserMinus />
+            </Button>
+            <Button
+              size="icon-sm"
+              variant="soft-destructive"
+              onClick={() => setPendingDelete(u)}
+              disabled={isSelf}
+              aria-label="Delete"
+              title={isSelf ? selfTitle : "Delete"}
+            >
+              <Trash2 />
+            </Button>
+          </div>
+        )
+      },
     },
   ]
 

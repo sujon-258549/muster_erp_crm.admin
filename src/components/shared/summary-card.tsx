@@ -24,7 +24,7 @@ const summaryCardVariants = cva(
   //
   // `group` lets the sparkline below react to hover — only the area-fill
   // deepens, the edge stays put.
-  "group relative flex h-24 flex-col justify-between overflow-hidden rounded-md p-4 text-white ring-1 ring-inset ring-white/10",
+  "group relative flex h-24 flex-col justify-between overflow-hidden rounded-md p-4 text-white shadow-xs ring-1 ring-inset ring-white/10",
   {
     variants: {
       tone: {
