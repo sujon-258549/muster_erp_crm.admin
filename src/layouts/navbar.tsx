@@ -27,7 +27,7 @@ export default function Navbar() {
   const apiUser = meRes?.data
   const user = apiUser ?? cachedUser
 
-  console.log("Navbar render — user:", user)
+  console.log("Navbar render — user:", apiUser)
 
   useEffect(() => {
     if (apiUser) dispatch(userUpdated(apiUser))
