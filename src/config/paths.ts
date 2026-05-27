@@ -20,8 +20,6 @@ export const ROUTES = {
     USERS: mp("users"),
     CUSTOMERS: mp("customers"),
     PRODUCTS: mp("products"),
-    INVENTORY: mp("inventory"),
-    INVOICES: mp("invoices"),
     SETTINGS: mp("settings"),
   },
   EMPLOYEES: {

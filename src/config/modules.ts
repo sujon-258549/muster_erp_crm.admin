@@ -5,7 +5,6 @@
 import {
   Bell,
   Building2,
-  FileText,
   FolderTree,
   Image,
   LayoutDashboard,
@@ -15,10 +14,9 @@ import {
   Settings,
   UsersRound,
   Users,
-  Warehouse,
   Wrench,
   type LucideIcon,
-} from "lucide-react"
+} from "lucide-react";
 
 export type ModuleKey =
   | "dashboard"
@@ -34,25 +32,25 @@ export type ModuleKey =
   | "notifications"
   | "subscriptions"
   | "workTypes"
-  | "settings"
+  | "settings";
 
-export type ModuleGroup = "Overview" | "CRM" | "ERP" | "System"
+export type ModuleGroup = "Overview" | "CRM" | "ERP" | "System";
 
 // A child entry doubles as its own permission item when `key` is set —
 // the permission modal then drops the parent in favor of these children.
 // Use a stable key (kebab/dot case) so backend rows survive label edits.
 export interface AppModuleChild {
-  key: string
-  label: string
-  path: string
+  key: string;
+  label: string;
+  path: string;
 }
 
 export interface AppModule {
-  key: ModuleKey
-  label: string
-  path: string
-  icon: LucideIcon
-  children?: AppModuleChild[]
+  key: ModuleKey;
+  label: string;
+  path: string;
+  icon: LucideIcon;
+  children?: AppModuleChild[];
 }
 
 export const MODULES: AppModule[] = [
@@ -70,7 +68,11 @@ export const MODULES: AppModule[] = [
     children: [
       { key: "customers.list", label: "All Customers", path: "/customers" },
       { key: "customers.new", label: "New Customer", path: "/customers/new" },
-      { key: "customers.leads", label: "Leads", path: "/customers?status=lead" },
+      {
+        key: "customers.leads",
+        label: "Leads",
+        path: "/customers?status=lead",
+      },
     ],
   },
   {
@@ -98,18 +100,6 @@ export const MODULES: AppModule[] = [
     ],
   },
   {
-    key: "inventory",
-    label: "Inventory",
-    path: "/inventory",
-    icon: Warehouse,
-  },
-  {
-    key: "invoices",
-    label: "Invoices",
-    path: "/invoices",
-    icon: FileText,
-  },
-  {
     key: "branches",
     label: "Branches",
     path: "/branches",
@@ -130,9 +120,17 @@ export const MODULES: AppModule[] = [
     icon: UsersRound,
     children: [
       { key: "employees", label: "Employee List", path: "/employees" },
-      { key: "departments", label: "Department List", path: "/employees/departments" },
+      {
+        key: "departments",
+        label: "Department List",
+        path: "/employees/departments",
+      },
       { key: "roles", label: "Role List", path: "/employees/roles" },
-      { key: "designations", label: "Designation List", path: "/employees/designations" },
+      {
+        key: "designations",
+        label: "Designation List",
+        path: "/employees/designations",
+      },
     ],
   },
   {
@@ -171,19 +169,19 @@ export const MODULES: AppModule[] = [
     path: "/settings",
     icon: Settings,
   },
-]
+];
 
-export const MODULE_KEYS = MODULES.map((m) => m.key)
+export const MODULE_KEYS = MODULES.map((m) => m.key);
 
 export const MODULE_GROUPS: ModuleGroup[] = [
   "Overview",
   "CRM",
   "ERP",
   "System",
-]
+];
 
 export const getModule = (key: ModuleKey): AppModule | undefined =>
-  MODULES.find((m) => m.key === key)
+  MODULES.find((m) => m.key === key);
 
 // Note: the role-permission modal flattens MODULES into per-sub-module
 // permission items with custom action lists. See
