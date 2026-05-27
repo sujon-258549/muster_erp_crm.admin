@@ -68,7 +68,9 @@ import BlogList from "@/pages/blog/BlogList"
 import MediaLibrary from "@/pages/media/MediaLibrary"
 import WorkTypeList from "@/pages/work-types/WorkTypeList"
 import SubscriptionList from "@/pages/subscriptions/SubscriptionList"
+import PlanList from "@/pages/subscriptions/PlanList"
 import NotificationList from "@/pages/notifications/NotificationList"
+import WorkflowPage from "@/pages/workflow/WorkflowPage"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Router
@@ -287,8 +289,16 @@ export const router = createBrowserRouter([
       {
         path: "subscriptions",
         element: (
-          <RequirePermission moduleKey="subscriptions">
+          <RequirePermission moduleKey="subscriptions.list">
             <SubscriptionList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "subscriptions/plans",
+        element: (
+          <RequirePermission moduleKey="subscriptions.plans">
+            <PlanList />
           </RequirePermission>
         ),
       },
@@ -299,6 +309,17 @@ export const router = createBrowserRouter([
         element: (
           <RequirePermission moduleKey="notifications">
             <NotificationList />
+          </RequirePermission>
+        ),
+      },
+
+      // Workflow Guide — Platform Super Admin playbook. Only super-admins
+      // (or anyone explicitly granted `workflow.read`) can see it.
+      {
+        path: "workflow",
+        element: (
+          <RequirePermission moduleKey="workflow">
+            <WorkflowPage />
           </RequirePermission>
         ),
       },

@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { KeyRound, Pencil, Plus, ShieldCheck, Trash2 } from "lucide-react"
+import { KeyRound, Plus, ShieldCheck, Trash2 } from "lucide-react"
+import { FiEdit } from "react-icons/fi"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -12,7 +13,6 @@ import {
   EmptyState,
   IconBadge,
   PageHeader,
-  StatusBadge,
   Text,
   type Column,
 } from "@/components/shared"
@@ -106,19 +106,18 @@ export default function RoleListPage() {
       key: "status",
       header: "Status",
       cell: (r) => (
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={r.isActive}
-            onCheckedChange={() => onToggle(r.id)}
-          />
-          <StatusBadge tone={r.isActive ? "active" : "inactive"} />
-        </div>
+        <Switch
+          checked={r.isActive}
+          onCheckedChange={() => onToggle(r.id)}
+          withLabels
+        />
       ),
     },
     {
       key: "actions",
       header: "Actions",
       align: "right",
+      fixed: "right",
       cell: (r) => (
         <div className="flex justify-end gap-1">
           <Can module="roles" action="permission">
@@ -141,7 +140,7 @@ export default function RoleListPage() {
               aria-label="Edit"
               className="border border-gray-300"
             >
-              <Pencil />
+              <FiEdit />
             </Button>
           </Can>
           <Can module="roles" action="delete">

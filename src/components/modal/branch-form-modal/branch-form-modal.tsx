@@ -34,13 +34,17 @@ export function BranchFormModal({
 }: BranchFormModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-[90vw] overflow-y-auto sm:max-w-2xl">
-        <BranchForm
-          key={initial?.id ?? "new"}
-          initial={initial ?? null}
-          onClose={() => onOpenChange(false)}
-          onCreated={onCreated}
-        />
+      {/* `overflow-hidden` on the outer keeps the close button anchored
+          to the modal top; scrolling happens on the inner wrapper. */}
+      <DialogContent className="flex max-h-[90vh] w-300 max-w-[95vw] flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl">
+        <div className="min-h-0 flex-1 overflow-y-auto p-6">
+          <BranchForm
+            key={initial?.id ?? "new"}
+            initial={initial ?? null}
+            onClose={() => onOpenChange(false)}
+            onCreated={onCreated}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   )

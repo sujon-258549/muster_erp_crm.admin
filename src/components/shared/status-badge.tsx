@@ -19,7 +19,7 @@ interface StatusBadgeProps {
 
 const TONE_LABELS: Record<StatusTone, string> = {
   active: "Active",
-  inactive: "Inactive",
+  inactive: "Deactive",
   blocked: "Blocked",
   deleted: "Deleted",
   pending: "Pending",

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
-import { Ban, Pencil, Plus, Trash2, UserMinus, Users as UsersIcon } from "lucide-react"
+import { Ban, Plus, Trash2, UserMinus, Users as UsersIcon } from "lucide-react"
+import { FiEdit } from "react-icons/fi"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
@@ -278,6 +279,7 @@ export default function EmployeeListPage() {
       key: "actions",
       header: "Actions",
       align: "right",
+      fixed: "right",
       cell: (u) => {
         const isSelf = u.id === currentUserId
         const selfTitle = "You can't perform this action on your own account"
@@ -293,7 +295,7 @@ export default function EmployeeListPage() {
                 className="border border-gray-300"
               >
                 <Link to={ROUTES.EMPLOYEES.EDIT(u.id)}>
-                  <Pencil />
+                  <FiEdit />
                 </Link>
               </Button>
             </Can>

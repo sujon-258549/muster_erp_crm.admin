@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { FormField, PageHeader, Text } from "@/components/shared"
+import { FormSkeleton } from "@/components/skeleton"
 import {
   DepartmentFormModal,
   DesignationFormModal,
@@ -187,8 +188,9 @@ export default function EmployeeEditPage() {
 
   if (isFetching && !userRes) {
     return (
-      <div className="grid place-items-center py-24 text-muted-foreground">
-        <Loader2 className="size-6 animate-spin" />
+      <div className="space-y-5">
+        <PageHeader title="Edit Employee" description="Loading employee details…" />
+        <FormSkeleton fields={12} columns={2} />
       </div>
     )
   }

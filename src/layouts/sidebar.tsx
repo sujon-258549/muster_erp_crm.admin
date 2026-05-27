@@ -22,7 +22,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { useAppDispatch } from "@/redux/hooks"
-import { loggedOut } from "@/redux/features/auth/auth-slice"
+import { performLogout } from "@/redux/features/auth/auth-slice"
 import { useCurrentUser } from "@/hooks/use-permission"
 import { hasAction, isSuperAdmin } from "@/lib/permissions"
 import { MODULES, type AppModule, type AppModuleChild } from "@/config/modules"
@@ -65,7 +65,7 @@ export default function AppSidebar() {
     false
 
   const handleLogout = () => {
-    dispatch(loggedOut())
+    dispatch(performLogout())
     navigate(ROUTES.AUTH.LOGIN, { replace: true })
   }
 

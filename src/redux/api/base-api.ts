@@ -98,6 +98,9 @@ const baseQueryWithReauth: BaseQueryFn<
       console.warn("[base-api] /auth/refresh failed — logging user out.")
     }
     api.dispatch(loggedOut())
+    // Drop every cached query so the login page isn't seeded with the
+    // previous user's data.
+    api.dispatch(baseApi.util.resetApiState())
     return result
   }
 
@@ -129,6 +132,8 @@ export const baseApi = createApi({
     "Permission",
     "Branch",
     "SubBranch",
+    "Subscription",
+    "SubscriptionPlan",
   ],
   endpoints: () => ({}),
 })

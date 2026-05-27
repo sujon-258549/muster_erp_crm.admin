@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom"
 import { ShieldAlert } from "lucide-react"
 import { useAppDispatch } from "@/redux/hooks"
-import { loggedOut } from "@/redux/features/auth/auth-slice"
+import { performLogout } from "@/redux/features/auth/auth-slice"
 import { Button } from "@/components/ui/button"
 import { ROUTES } from "@/config/paths"
 
@@ -19,7 +19,7 @@ export default function AccessDenied() {
           your administrator to grant you the right module access.
         </p>
         <div className="flex justify-center gap-2 pt-2">
-          <Button variant="outline" onClick={() => dispatch(loggedOut())} asChild>
+          <Button variant="outline" onClick={() => dispatch(performLogout())} asChild>
             <Link to={ROUTES.AUTH.LOGIN}>Sign out</Link>
           </Button>
         </div>

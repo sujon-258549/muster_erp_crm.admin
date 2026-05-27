@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { useAppDispatch, useAppSelector } from "@/redux/hooks"
-import { loggedOut, userUpdated } from "@/redux/features/auth/auth-slice"
+import { performLogout, userUpdated } from "@/redux/features/auth/auth-slice"
 import { useGetMyDataQuery } from "@/redux/features/users/users-api"
 import ThemeSwitcher from "./theme-switcher"
 
@@ -68,7 +68,7 @@ export default function Navbar() {
             <DropdownMenuItem>
               <UserIcon className="size-4" /> Profile
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => dispatch(loggedOut())}>
+            <DropdownMenuItem onClick={() => dispatch(performLogout())}>
               <LogOut className="size-4" /> Logout
             </DropdownMenuItem>
           </DropdownMenuContent>

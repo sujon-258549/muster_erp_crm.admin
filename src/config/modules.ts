@@ -32,6 +32,7 @@ export type ModuleKey =
   | "notifications"
   | "subscriptions"
   | "workTypes"
+  | "workflow"
   | "settings";
 
 export type ModuleGroup = "Overview" | "CRM" | "ERP" | "System";
@@ -101,7 +102,7 @@ export const MODULES: AppModule[] = [
   },
   {
     key: "branches",
-    label: "Branches",
+    label: "Branches Management",
     path: "/branches",
     icon: Building2,
     children: [
@@ -156,6 +157,18 @@ export const MODULES: AppModule[] = [
     label: "Subscriptions",
     path: "/subscriptions",
     icon: Receipt,
+    children: [
+      {
+        key: "subscriptions.list",
+        label: "All Subscriptions",
+        path: "/subscriptions",
+      },
+      {
+        key: "subscriptions.plans",
+        label: "Plans",
+        path: "/subscriptions/plans",
+      },
+    ],
   },
   {
     key: "notifications",
@@ -168,6 +181,10 @@ export const MODULES: AppModule[] = [
     label: "Settings",
     path: "/settings",
     icon: Settings,
+    children: [
+      { key: "settings", label: "General", path: "/settings" },
+      { key: "workflow", label: "Workflow Guide", path: "/workflow" },
+    ],
   },
 ];
 

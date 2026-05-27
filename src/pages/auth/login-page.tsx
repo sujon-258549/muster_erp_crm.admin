@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import PasswordInput from "@/components/common/password-input"
 import { useAppDispatch } from "@/redux/hooks"
-import { credentialsSet } from "@/redux/features/auth/auth-slice"
+import { performLogin } from "@/redux/features/auth/auth-slice"
 import { useLoginMutation } from "@/redux/features/auth/auth-api"
 import { ROUTES } from "@/config/paths"
 
@@ -62,7 +62,7 @@ export default function LoginPage() {
         )
       }
 
-      dispatch(credentialsSet({ user, accessToken, refreshToken }))
+      dispatch(performLogin({ user, accessToken, refreshToken }))
       toast.success(`Welcome back, ${user?.name ?? "user"}`)
       // "/" hits SmartIndex which routes the user to their first accessible
       // module (or /access-denied if no permissions are granted).

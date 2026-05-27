@@ -1,5 +1,7 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 import type { User } from "@/types/user"
+import { baseApi } from "@/redux/api/base-api"
+import type { AppDispatch } from "@/redux/store"
 
 export interface AuthState {
   user: User | null
@@ -56,3 +58,21 @@ const authSlice = createSlice({
 export const { credentialsSet, tokensRefreshed, userUpdated, loggedOut } =
   authSlice.actions
 export default authSlice.reducer
+
+// Thunks — use these instead of dispatching `credentialsSet` / `loggedOut`
+// directly. They also wipe the RTK Query cache so cached responses from a
+// previous user don't leak into the new session.
+export const performLogin =
+  (payload: { user: User; accessToken: string; refreshToken: string }) =>
+  (dispatch: AppDispatch) => {
+    // Wipe any cached data from the previous session BEFORE setting new
+    // credentials, so the new user fetches everything fresh.
+    dispatch(baseApi.util.resetApiState())
+    dispatch(credentialsSet(payload))
+  }
+
+export const performLogout = () => (dispatch: AppDispatch) => {
+  dispatch(loggedOut())
+  // Drop every cached query so the next login (or guest view) starts clean.
+  dispatch(baseApi.util.resetApiState())
+}

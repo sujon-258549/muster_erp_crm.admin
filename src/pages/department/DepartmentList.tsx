@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { Building2, Pencil, Plus, Trash2 } from "lucide-react"
+import { Building2, Plus, Trash2 } from "lucide-react"
+import { FiEdit } from "react-icons/fi"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -12,7 +13,6 @@ import {
   EmptyState,
   IconBadge,
   PageHeader,
-  StatusBadge,
   Text,
   type Column,
 } from "@/components/shared"
@@ -97,19 +97,18 @@ export default function DepartmentListPage() {
       key: "status",
       header: "Status",
       cell: (d) => (
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={d.isActive}
-            onCheckedChange={() => onToggle(d.id)}
-          />
-          <StatusBadge tone={d.isActive ? "active" : "inactive"} />
-        </div>
+        <Switch
+          checked={d.isActive}
+          onCheckedChange={() => onToggle(d.id)}
+          withLabels
+        />
       ),
     },
     {
       key: "actions",
       header: "Actions",
       align: "right",
+      fixed: "right",
       cell: (d) => (
         <div className="flex justify-end gap-1">
           <Can module="departments" action="update">
@@ -120,7 +119,7 @@ export default function DepartmentListPage() {
               aria-label="Edit"
               className="border border-gray-300"
             >
-              <Pencil />
+              <FiEdit />
             </Button>
           </Can>
           <Can module="departments" action="delete">

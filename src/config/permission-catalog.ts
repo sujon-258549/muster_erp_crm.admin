@@ -32,6 +32,8 @@ const ACTION_OVERRIDES: Record<string, readonly string[]> = {
   notifications: ["read", "delete"],
   // Blog — full CRUD with optional publish action.
   blog: [...CRUD, "publish"],
+  // Workflow guide — read-only docs page, no other actions make sense.
+  workflow: ["read"],
 }
 
 export interface PermissionCatalogItem {

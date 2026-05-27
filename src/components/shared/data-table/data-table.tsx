@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react"
-import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { TableSkeleton } from "@/components/skeleton"
 
 export interface Column<T> {
   key: string
@@ -17,6 +17,10 @@ export interface Column<T> {
   // `hidden md:table-cell` so they only render on tablet+ screens. Defaults
   // to false (always visible).
   hideOnMobile?: boolean
+  // Pin the column to the right edge while the table scrolls horizontally —
+  // mirrors Ant Design's `fixed: 'right'`. Use for action columns so they
+  // never scroll out of view.
+  fixed?: "right"
 }
 
 interface DataTableProps<T> {
@@ -75,12 +79,11 @@ export function DataTable<T extends Record<string, any>>({
   const keyFor = (row: T, index: number) =>
     rowKey ? rowKey(row, index) : ((row.id as string) ?? String(index))
 
+  // Skeleton rows mimic the real table shape — far less jarring than a
+  // spinner. Column count derives from the actual columns prop so the
+  // ghost matches the eventual layout.
   if (isLoading) {
-    return (
-      <div className="grid place-items-center rounded-md border bg-card py-16 text-muted-foreground shadow-xs">
-        <Loader2 className="size-6 animate-spin" />
-      </div>
-    )
+    return <TableSkeleton columns={columns.length || 5} rows={6} />
   }
 
   if (data.length === 0 && empty) {
@@ -103,8 +106,8 @@ export function DataTable<T extends Record<string, any>>({
             {caption}
           </caption>
         )}
-        <thead className="border-b border-border/70 bg-muted/50 text-[11px] uppercase tracking-wider text-muted-foreground">
-          <tr>
+        <thead className="border-b border-border/70 text-[11px] uppercase tracking-wider text-muted-foreground">
+          <tr className="bg-muted/50">
             {columns.map((col) => (
               <th
                 key={col.key}
@@ -113,6 +116,8 @@ export function DataTable<T extends Record<string, any>>({
                   "px-4 py-3 font-semibold",
                   alignClass(col.align),
                   responsiveClass(col.hideOnMobile),
+                  col.fixed === "right" &&
+                    "sticky right-0 z-20 bg-muted shadow-[-4px_0_6px_-4px_rgba(0,0,0,0.08)]",
                   col.headerClassName,
                 )}
               >
@@ -126,7 +131,7 @@ export function DataTable<T extends Record<string, any>>({
             <tr
               key={keyFor(row, index)}
               className={cn(
-                "transition-colors hover:bg-muted/40",
+                "bg-card transition-colors hover:bg-muted",
                 onRowClick && "cursor-pointer",
               )}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
@@ -138,6 +143,8 @@ export function DataTable<T extends Record<string, any>>({
                     "px-4 py-3 align-middle",
                     alignClass(col.align),
                     responsiveClass(col.hideOnMobile),
+                    col.fixed === "right" &&
+                      "sticky right-0 z-10 bg-inherit shadow-[-4px_0_6px_-4px_rgba(0,0,0,0.08)]",
                     col.className,
                   )}
                 >

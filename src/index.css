@@ -173,3 +173,24 @@
     background-color: var(--muted-foreground);
   }
 }
+
+/* Dialog/modal content gets a slim scrollbar too. Defined outside @layer
+   base so it wins specificity against Radix's own styles. */
+[data-slot="dialog-content"] {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+[data-slot="dialog-content"]::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+[data-slot="dialog-content"]::-webkit-scrollbar-track {
+  background: transparent;
+}
+[data-slot="dialog-content"]::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 9999px;
+}
+[data-slot="dialog-content"]::-webkit-scrollbar-thumb:hover {
+  background-color: var(--muted-foreground);
+}
