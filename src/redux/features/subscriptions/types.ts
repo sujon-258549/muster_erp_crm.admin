@@ -2,12 +2,10 @@
 // company (= Branch). The branch is the tenant; the subscription gates
 // their access window.
 
-export type BillingCycle =
-  | "monthly"
-  | "quarterly"
-  | "half-yearly"
-  | "yearly"
-  | "lifetime"
+// Stable identifier for a billing period — one of the entries listed in
+// `lib/billing-cycles.ts` (e.g. "7-day", "2-week", "3-month", "1-year",
+// "lifetime"). Kept as `string` so the option catalog stays flexible.
+export type BillingCycle = string
 
 export interface Subscription {
   id: string

@@ -27,6 +27,7 @@ import type {
   Subscription,
 } from "@/redux/features/subscriptions"
 import type { SubscriptionPlan } from "@/redux/features/subscription-plans"
+import { BILLING_CYCLE_OPTIONS, addCycleToDate } from "@/lib/billing-cycles"
 import { getErrorMessage } from "@/lib/errors"
 
 interface Props {
@@ -71,17 +72,11 @@ interface FormState {
 
 const todayIso = () => new Date().toISOString().slice(0, 10)
 
-// Default end date one cycle out from the chosen start.
-const addCycle = (startIso: string, cycle: BillingCycle): string => {
-  if (cycle === "lifetime") return ""
-  const d = new Date(startIso)
-  if (Number.isNaN(d.getTime())) return ""
-  if (cycle === "monthly") d.setMonth(d.getMonth() + 1)
-  else if (cycle === "quarterly") d.setMonth(d.getMonth() + 3)
-  else if (cycle === "half-yearly") d.setMonth(d.getMonth() + 6)
-  else d.setFullYear(d.getFullYear() + 1)
-  return d.toISOString().slice(0, 10)
-}
+// Thin wrapper kept for symmetry with existing call sites — delegates to
+// the shared billing-cycles helper so every dropdown speaks the same
+// value format ("3-day", "2-week", "6-month", "1-year", "lifetime").
+const addCycle = (startIso: string, cycle: BillingCycle): string =>
+  addCycleToDate(startIso, cycle)
 
 function makeInitial(initial: Subscription | null): FormState {
   if (!initial) {
@@ -92,9 +87,9 @@ function makeInitial(initial: Subscription | null): FormState {
       planName: "",
       price: "",
       currency: "BDT",
-      billingCycle: "monthly",
+      billingCycle: "1-month",
       startDate: start,
-      endDate: addCycle(start, "monthly"),
+      endDate: addCycle(start, "1-month"),
       notes: "",
       isActive: true,
     }
@@ -105,7 +100,7 @@ function makeInitial(initial: Subscription | null): FormState {
     planName: initial.planName ?? "",
     price: initial.price != null ? String(initial.price) : "",
     currency: initial.currency ?? "BDT",
-    billingCycle: initial.billingCycle ?? "monthly",
+    billingCycle: initial.billingCycle ?? "1-month",
     startDate: initial.startDate?.slice(0, 10) ?? todayIso(),
     endDate: initial.endDate?.slice(0, 10) ?? "",
     notes: initial.notes ?? "",
@@ -114,13 +109,6 @@ function makeInitial(initial: Subscription | null): FormState {
 }
 
 const CURRENCIES = ["BDT", "USD", "EUR", "INR"] as const
-const CYCLES: { value: BillingCycle; label: string }[] = [
-  { value: "monthly", label: "Monthly" },
-  { value: "quarterly", label: "Quarterly (3 months)" },
-  { value: "half-yearly", label: "Half-yearly (6 months)" },
-  { value: "yearly", label: "Yearly" },
-  { value: "lifetime", label: "Lifetime (no expiry)" },
-]
 
 function SubscriptionForm({
   initial,
@@ -281,7 +269,7 @@ function SubscriptionForm({
             value={form.billingCycle}
             onChange={(v) => handleCycle(v as BillingCycle)}
           >
-            {CYCLES.map((c) => (
+            {BILLING_CYCLE_OPTIONS.map((c) => (
               <option key={c.value} value={c.value}>
                 {c.label}
               </option>

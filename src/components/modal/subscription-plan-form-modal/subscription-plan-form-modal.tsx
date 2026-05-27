@@ -19,6 +19,7 @@ import { FormField } from "@/components/shared"
 import { useSubscriptionPlan } from "@/hooks/data-fetch"
 import type { SubscriptionPlan } from "@/redux/features/subscription-plans"
 import type { BillingCycle } from "@/redux/features/subscriptions"
+import { BILLING_CYCLE_OPTIONS, cycleToMonths } from "@/lib/billing-cycles"
 import { getErrorMessage } from "@/lib/errors"
 
 interface Props {
@@ -58,22 +59,6 @@ interface FormState {
   isActive: boolean
 }
 
-// Default month count by cycle. Lifetime → null (no expiry).
-const cycleToMonths = (cycle: BillingCycle): number | null => {
-  switch (cycle) {
-    case "monthly":
-      return 1
-    case "quarterly":
-      return 3
-    case "half-yearly":
-      return 6
-    case "yearly":
-      return 12
-    case "lifetime":
-      return null
-  }
-}
-
 function makeInitial(initial: SubscriptionPlan | null): FormState {
   if (!initial)
     return {
@@ -81,7 +66,7 @@ function makeInitial(initial: SubscriptionPlan | null): FormState {
       description: "",
       price: "",
       currency: "BDT",
-      billingCycle: "monthly",
+      billingCycle: "1-month",
       features: "",
       isActive: true,
     }
@@ -90,20 +75,13 @@ function makeInitial(initial: SubscriptionPlan | null): FormState {
     description: initial.description ?? "",
     price: initial.price != null ? String(initial.price) : "",
     currency: initial.currency ?? "BDT",
-    billingCycle: initial.billingCycle ?? "monthly",
+    billingCycle: initial.billingCycle ?? "1-month",
     features: (initial.features ?? []).join("\n"),
     isActive: initial.isActive,
   }
 }
 
 const CURRENCIES = ["BDT", "USD", "EUR", "INR"] as const
-const CYCLES: { value: BillingCycle; label: string }[] = [
-  { value: "monthly", label: "Monthly" },
-  { value: "quarterly", label: "Quarterly (3 months)" },
-  { value: "half-yearly", label: "Half-yearly (6 months)" },
-  { value: "yearly", label: "Yearly" },
-  { value: "lifetime", label: "Lifetime (no expiry)" },
-]
 
 function PlanForm({
   initial,
@@ -184,7 +162,7 @@ function PlanForm({
             value={form.billingCycle}
             onChange={(v) => update("billingCycle", v as BillingCycle)}
           >
-            {CYCLES.map((c) => (
+            {BILLING_CYCLE_OPTIONS.map((c) => (
               <option key={c.value} value={c.value}>
                 {c.label}
               </option>
