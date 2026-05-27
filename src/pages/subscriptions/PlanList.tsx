@@ -21,6 +21,7 @@ import { useSubscriptionPlan } from "@/hooks/data-fetch"
 import type { SubscriptionPlan } from "@/redux/features/subscription-plans"
 import { getErrorMessage } from "@/lib/errors"
 import { shortId } from "@/lib/format"
+import { getCycleLabel } from "@/lib/billing-cycles"
 import { SubscriptionPlanFormModal } from "@/components/modal"
 
 const formatMoney = (price: number | null, currency: string | null) => {

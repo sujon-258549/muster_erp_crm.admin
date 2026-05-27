@@ -23,6 +23,7 @@ import { useBranch, useSubscription } from "@/hooks/data-fetch"
 import type { Subscription } from "@/redux/features/subscriptions"
 import { getErrorMessage } from "@/lib/errors"
 import { shortId } from "@/lib/format"
+import { getCycleLabel } from "@/lib/billing-cycles"
 import { SubscriptionFormModal } from "@/components/modal"
 
 const formatMoney = (price: number | null, currency: string | null) => {
@@ -133,8 +134,8 @@ export default function SubscriptionListPage() {
       cell: (s) => (
         <div className="min-w-0">
           <div className="truncate font-medium">{s.planName || "—"}</div>
-          <Text size="xs" tone="muted" className="capitalize">
-            {s.billingCycle?.replace("-", " ") ?? "—"}
+          <Text size="xs" tone="muted">
+            {getCycleLabel(s.billingCycle)}
           </Text>
         </div>
       ),

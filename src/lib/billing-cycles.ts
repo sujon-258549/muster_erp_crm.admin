@@ -107,6 +107,17 @@ export function addCycleToDate(startIso: string, cycle: string): string {
   return d.toISOString().slice(0, 10)
 }
 
+// Friendly display label for a cycle value. Falls back to a lightly
+// formatted version of the raw value when it isn't in the catalog —
+// useful for legacy rows that still have "monthly" / "yearly".
+export function getCycleLabel(cycle: string | null | undefined): string {
+  if (!cycle) return "—"
+  const known = BILLING_CYCLE_OPTIONS.find((o) => o.value === cycle)
+  if (known) return known.label
+  // Legacy / unknown — make it readable.
+  return cycle.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
 // Convert a cycle to a number of months for backend storage on plans.
 // Lifetime → null. Sub-month cycles round up to 1.
 export function cycleToMonths(cycle: string): number | null {
