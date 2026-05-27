@@ -182,9 +182,7 @@ function PlanForm({
         <FormField label="Billing Cycle" required>
           <Select
             value={form.billingCycle}
-            onChange={(e) =>
-              update("billingCycle", e.target.value as BillingCycle)
-            }
+            onChange={(v) => update("billingCycle", v as BillingCycle)}
           >
             {CYCLES.map((c) => (
               <option key={c.value} value={c.value}>

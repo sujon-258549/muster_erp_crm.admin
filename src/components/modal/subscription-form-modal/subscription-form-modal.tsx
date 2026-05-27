@@ -279,7 +279,7 @@ function SubscriptionForm({
         <FormField label="Billing Cycle" required>
           <Select
             value={form.billingCycle}
-            onChange={(e) => handleCycle(e.target.value as BillingCycle)}
+            onChange={(v) => handleCycle(v as BillingCycle)}
           >
             {CYCLES.map((c) => (
               <option key={c.value} value={c.value}>
@@ -305,7 +305,7 @@ function SubscriptionForm({
         <FormField label="Currency" required>
           <Select
             value={form.currency}
-            onChange={(e) => update("currency", e.target.value)}
+            onChange={(v) => update("currency", v)}
           >
             {CURRENCIES.map((c) => (
               <option key={c} value={c}>
