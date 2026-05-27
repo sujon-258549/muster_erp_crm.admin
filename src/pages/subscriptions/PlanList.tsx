@@ -38,9 +38,6 @@ const formatMoney = (price: number | null, currency: string | null) => {
   }
 }
 
-const cycleLabel = (cycle: string | null) =>
-  cycle ? cycle.replace("-", " ") : "—"
-
 export default function PlanListPage() {
   const [search, setSearch] = useState("")
   const debounced = useDebounce(search, 350)
@@ -106,7 +103,7 @@ export default function PlanListPage() {
       key: "cycle",
       header: "Cycle",
       cell: (p) => (
-        <span className="capitalize text-sm">{cycleLabel(p.billingCycle)}</span>
+        <span className="text-sm">{getCycleLabel(p.billingCycle)}</span>
       ),
     },
     {
