@@ -195,7 +195,7 @@ function PlanForm({
         <FormField label="Currency" required>
           <Select
             value={form.currency}
-            onChange={(e) => update("currency", e.target.value)}
+            onChange={(v) => update("currency", v)}
           >
             {CURRENCIES.map((c) => (
               <option key={c} value={c}>
