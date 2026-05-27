@@ -15,18 +15,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { FormField, Text } from "@/components/shared"
-import { useBranch } from "@/hooks/data-fetch"
-import type { Branch } from "@/redux/features/branches"
+import { useMainBranch } from "@/hooks/data-fetch"
+import type { MainBranch } from "@/redux/features/main-mainBranches"
 import { getErrorMessage } from "@/lib/errors"
 
 interface BranchFormModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  initial?: Branch | null
-  onCreated?: (branch: Branch) => void
+  initial?: MainBranch | null
+  onCreated?: (branch: MainBranch) => void
 }
 
-export function BranchFormModal({
+export function MainBranchFormModal({
   open,
   onOpenChange,
   initial,
@@ -69,7 +69,7 @@ interface FormState {
   isActive: boolean
 }
 
-const makeInitial = (b: Branch | null): FormState => ({
+const makeInitial = (b: MainBranch | null): FormState => ({
   name: b?.name ?? "",
   description: b?.description ?? "",
   email: b?.email ?? "",
@@ -93,12 +93,12 @@ function BranchForm({
   onClose,
   onCreated,
 }: {
-  initial: Branch | null
+  initial: MainBranch | null
   onClose: () => void
-  onCreated?: (branch: Branch) => void
+  onCreated?: (branch: MainBranch) => void
 }) {
   const [form, setForm] = useState<FormState>(() => makeInitial(initial))
-  const { createBranch, updateBranch, isLoading } = useBranch()
+  const { createMainBranch, updateMainBranch, isLoading } = useMainBranch()
   const isEdit = Boolean(initial?.id)
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>
@@ -133,10 +133,10 @@ function BranchForm({
 
     try {
       if (isEdit && initial) {
-        await updateBranch({ id: initial.id, data: payload }).unwrap()
+        await updateMainBranch({ id: initial.id, data: payload }).unwrap()
         toast.success("Branch updated")
       } else {
-        const res = await createBranch(payload).unwrap()
+        const res = await createMainBranch(payload).unwrap()
         toast.success("Branch created")
         if (res?.data) onCreated?.(res.data)
       }
@@ -281,7 +281,7 @@ function BranchForm({
             <div>
               <Label className="text-sm font-medium">Active</Label>
               <Text size="xs" tone="muted">
-                Inactive branches are hidden from selection lists.
+                Inactive mainBranches are hidden from selection lists.
               </Text>
             </div>
             <Switch
@@ -303,7 +303,7 @@ function BranchForm({
         </Button>
         <Button type="submit" disabled={isLoading}>
           {isLoading && <Loader2 className="size-4 animate-spin" />}
-          {isEdit ? "Update Branch" : "Create Branch"}
+          {isEdit ? "Update MainBranch" : "Create Branch"}
         </Button>
       </DialogFooter>
     </form>

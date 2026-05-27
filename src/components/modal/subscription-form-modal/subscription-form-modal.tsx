@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-import { Select } from "@/components/ui/select"
 import { Combobox } from "@/components/ui/combobox"
 import {
   Dialog,
@@ -18,16 +17,13 @@ import {
 } from "@/components/ui/dialog"
 import { FormField } from "@/components/shared"
 import {
-  useBranch,
+  useMainBranch,
   useSubscription,
   useSubscriptionPlan,
 } from "@/hooks/data-fetch"
-import type {
-  BillingCycle,
-  Subscription,
-} from "@/redux/features/subscriptions"
+import type { Subscription } from "@/redux/features/subscriptions"
 import type { SubscriptionPlan } from "@/redux/features/subscription-plans"
-import { BILLING_CYCLE_OPTIONS, addCycleToDate } from "@/lib/billing-cycles"
+import { addCycleToDate } from "@/lib/billing-cycles"
 import { getErrorMessage } from "@/lib/errors"
 
 interface Props {
@@ -60,10 +56,6 @@ export function SubscriptionFormModal({
 interface FormState {
   branchId: string
   planId: string
-  planName: string
-  price: string
-  currency: string
-  billingCycle: BillingCycle
   startDate: string
   endDate: string
   notes: string
@@ -72,24 +64,21 @@ interface FormState {
 
 const todayIso = () => new Date().toISOString().slice(0, 10)
 
-// Thin wrapper kept for symmetry with existing call sites — delegates to
-// the shared billing-cycles helper so every dropdown speaks the same
-// value format ("3-day", "2-week", "6-month", "1-year", "lifetime").
-const addCycle = (startIso: string, cycle: BillingCycle): string =>
-  addCycleToDate(startIso, cycle)
+const computeEnd = (
+  startIso: string,
+  plan: SubscriptionPlan | undefined,
+): string => {
+  if (!plan?.billingCycle) return ""
+  return addCycleToDate(startIso, plan.billingCycle)
+}
 
 function makeInitial(initial: Subscription | null): FormState {
   if (!initial) {
-    const start = todayIso()
     return {
       branchId: "",
       planId: "",
-      planName: "",
-      price: "",
-      currency: "BDT",
-      billingCycle: "1-month",
-      startDate: start,
-      endDate: addCycle(start, "1-month"),
+      startDate: todayIso(),
+      endDate: "",
       notes: "",
       isActive: true,
     }
@@ -97,18 +86,12 @@ function makeInitial(initial: Subscription | null): FormState {
   return {
     branchId: initial.branchId ?? "",
     planId: initial.planId ?? "",
-    planName: initial.planName ?? "",
-    price: initial.price != null ? String(initial.price) : "",
-    currency: initial.currency ?? "BDT",
-    billingCycle: initial.billingCycle ?? "1-month",
     startDate: initial.startDate?.slice(0, 10) ?? todayIso(),
     endDate: initial.endDate?.slice(0, 10) ?? "",
     notes: initial.notes ?? "",
     isActive: initial.isActive,
   }
 }
-
-const CURRENCIES = ["BDT", "USD", "EUR", "INR"] as const
 
 function SubscriptionForm({
   initial,
@@ -120,62 +103,42 @@ function SubscriptionForm({
   onCreated?: (sub: Subscription) => void
 }) {
   const [form, setForm] = useState<FormState>(() => makeInitial(initial))
-  const { branches } = useBranch({ limit: 200 })
+  const { mainBranches } = useMainBranch({ limit: 200 })
   const { plans } = useSubscriptionPlan({ limit: 200 })
   const { createSubscription, updateSubscription, isLoading } = useSubscription()
   const isEdit = Boolean(initial?.id)
 
-  // When start date or cycle changes on a fresh form, recompute the end
-  // date so the user gets a sensible default. We only auto-update when
-  // the user hasn't manually edited endDate in the current session.
+  const selectedPlan = plans.find((p) => p.id === form.planId)
+  const isLifetime = selectedPlan?.billingCycle === "lifetime"
+
+  // Has the user overridden the auto-computed end date? If yes, stop
+  // recalculating it on plan / start changes.
   const [endDateTouched, setEndDateTouched] = useState(false)
 
   const update = <K extends keyof FormState>(k: K, v: FormState[K]) =>
     setForm((prev) => ({ ...prev, [k]: v }))
 
-  // Picking a plan auto-fills name + cycle + price + currency. The user
-  // can still tweak any of them afterwards (e.g. one-off discount).
-  const applyPlan = (planId: string) => {
-    const plan: SubscriptionPlan | undefined = plans.find((p) => p.id === planId)
-    if (!plan) {
-      update("planId", "")
-      return
-    }
-    const cycle: BillingCycle = plan.billingCycle ?? "monthly"
+  const handlePlan = (planId: string) => {
+    const plan = plans.find((p) => p.id === planId)
     setForm((prev) => ({
       ...prev,
-      planId: plan.id,
-      planName: plan.name ?? "",
-      price: plan.price != null ? String(plan.price) : prev.price,
-      currency: plan.currency ?? prev.currency,
-      billingCycle: cycle,
-      endDate: endDateTouched ? prev.endDate : addCycle(prev.startDate, cycle),
+      planId,
+      endDate: endDateTouched ? prev.endDate : computeEnd(prev.startDate, plan),
     }))
   }
+
   const handleStart = (v: string) => {
     setForm((prev) => ({
       ...prev,
       startDate: v,
-      endDate: endDateTouched ? prev.endDate : addCycle(v, prev.billingCycle),
+      endDate: endDateTouched ? prev.endDate : computeEnd(v, selectedPlan),
     }))
   }
-  const handleCycle = (v: BillingCycle) => {
-    setForm((prev) => ({
-      ...prev,
-      billingCycle: v,
-      endDate: endDateTouched ? prev.endDate : addCycle(prev.startDate, v),
-    }))
-  }
-
-  const isLifetime = form.billingCycle === "lifetime"
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.branchId) return toast.error("Select a company / branch")
-    if (!form.planName.trim()) return toast.error("Plan name is required")
-    const priceNum = Number(form.price)
-    if (!form.price || Number.isNaN(priceNum) || priceNum < 0)
-      return toast.error("Enter a valid price")
+    if (!form.planId) return toast.error("Select a plan")
     if (!form.startDate) return toast.error("Start date is required")
     if (!isLifetime) {
       if (!form.endDate) return toast.error("End date is required")
@@ -185,11 +148,7 @@ function SubscriptionForm({
 
     const payload = {
       branchId: form.branchId,
-      planId: form.planId || undefined,
-      planName: form.planName.trim(),
-      price: priceNum,
-      currency: form.currency,
-      billingCycle: form.billingCycle,
+      planId: form.planId,
       startDate: form.startDate,
       endDate: isLifetime ? null : form.endDate,
       notes: form.notes.trim() || undefined,
@@ -218,7 +177,8 @@ function SubscriptionForm({
           {isEdit ? "Edit Subscription" : "Create Subscription"}
         </DialogTitle>
         <DialogDescription>
-          Tie a plan + billing period to a company. After the end date, access lapses.
+          Assign a plan to a company. Plan defines price &amp; cycle; here we
+          set the dates.
         </DialogDescription>
       </DialogHeader>
 
@@ -230,7 +190,7 @@ function SubscriptionForm({
               onChange={(v) => update("branchId", v)}
               disabled={isEdit}
               placeholder="Select company"
-              options={branches.map((b) => ({
+              options={mainBranches.map((b) => ({
                 value: b.id,
                 label: b.name ?? "—",
               }))}
@@ -239,11 +199,11 @@ function SubscriptionForm({
         </div>
 
         <div className="sm:col-span-2">
-          <FormField label="Plan (from your plan list)">
+          <FormField label="Plan" required>
             <Combobox
               value={form.planId}
-              onChange={(v) => applyPlan(v)}
-              placeholder="Pick a plan to auto-fill — or enter custom below"
+              onChange={handlePlan}
+              placeholder="Pick a plan"
               options={plans
                 .filter((p) => p.isActive)
                 .map((p) => ({
@@ -254,54 +214,18 @@ function SubscriptionForm({
           </FormField>
         </div>
 
-        <FormField label="Plan Name" required htmlFor="sub-plan">
-          <Input
-            id="sub-plan"
-            required
-            value={form.planName}
-            onChange={(e) => update("planName", e.target.value)}
-            placeholder="e.g. Pro, Basic, Enterprise"
-          />
-        </FormField>
-
-        <FormField label="Billing Cycle" required>
-          <Select
-            value={form.billingCycle}
-            onChange={(v) => handleCycle(v as BillingCycle)}
-          >
-            {BILLING_CYCLE_OPTIONS.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </Select>
-        </FormField>
-
-        <FormField label="Price" required htmlFor="sub-price">
-          <Input
-            id="sub-price"
-            type="number"
-            min={0}
-            step="0.01"
-            required
-            value={form.price}
-            onChange={(e) => update("price", e.target.value)}
-            placeholder="0.00"
-          />
-        </FormField>
-
-        <FormField label="Currency" required>
-          <Select
-            value={form.currency}
-            onChange={(v) => update("currency", v)}
-          >
-            {CURRENCIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </Select>
-        </FormField>
+        {selectedPlan && (
+          <div className="sm:col-span-2 rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">
+              {selectedPlan.currency} {selectedPlan.price}
+            </span>
+            {" · "}
+            <span className="capitalize">
+              {selectedPlan.billingCycle?.replace("-", " ")}
+            </span>
+            {selectedPlan.description ? ` · ${selectedPlan.description}` : ""}
+          </div>
+        )}
 
         <FormField label="Start Date" required htmlFor="sub-start">
           <Input

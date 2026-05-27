@@ -130,7 +130,7 @@ export const baseApi = createApi({
     "Role",
     "Designation",
     "Permission",
-    "Branch",
+    "MainBranch",
     "SubBranch",
     "Subscription",
     "SubscriptionPlan",

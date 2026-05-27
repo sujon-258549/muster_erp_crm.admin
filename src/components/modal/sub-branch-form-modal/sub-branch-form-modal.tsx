@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { FormField, Text } from "@/components/shared"
-import { useBranch, useSubBranch } from "@/hooks/data-fetch"
+import { useMainBranch, useSubBranch } from "@/hooks/data-fetch"
 import type { SubBranch } from "@/redux/features/subBranches"
 import { getErrorMessage } from "@/lib/errors"
 
@@ -87,7 +87,7 @@ function SubBranchForm({
   onCreated?: (subBranch: SubBranch) => void
 }) {
   const [form, setForm] = useState<FormState>(() => makeInitial(initial))
-  const { branches } = useBranch({ limit: 200 })
+  const { mainBranches } = useMainBranch({ limit: 200 })
   const { createSubBranch, updateSubBranch, isLoading } = useSubBranch()
   const isEdit = Boolean(initial?.id)
 
@@ -167,7 +167,7 @@ function SubBranchForm({
               onChange={(v) => update("branchId", v)}
               disabled={isEdit}
               placeholder="Select parent branch"
-              options={branches.map((b) => ({
+              options={mainBranches.map((b) => ({
                 value: b.id,
                 label: b.name ?? "—",
               }))}

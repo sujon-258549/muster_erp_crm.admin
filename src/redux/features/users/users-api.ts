@@ -30,6 +30,20 @@ const flattenEmployee = (raw: any): EmployeeRow => {
     nid: raw?.profile?.nid ?? null,
     experience: raw?.workInfo?.experience ?? null,
     workType: raw?.workInfo?.workType ?? null,
+    branchId: raw?.branchId ?? null,
+    branchName: raw?.branch?.name ?? null,
+    roleId: raw?.roleId ?? raw?.role?.id ?? null,
+    roleName: raw?.role?.role ?? null,
+    // Backend ships `branch.subscriptions[0]` (most-recent active) with
+    // its plan included — pluck what the table actually renders.
+    subscriptionId: raw?.branch?.subscriptions?.[0]?.id ?? null,
+    subscriptionEndDate: raw?.branch?.subscriptions?.[0]?.endDate ?? null,
+    planId: raw?.branch?.subscriptions?.[0]?.plan?.id ?? null,
+    planName: raw?.branch?.subscriptions?.[0]?.plan?.name ?? null,
+    planPrice: raw?.branch?.subscriptions?.[0]?.plan?.price ?? null,
+    planCurrency: raw?.branch?.subscriptions?.[0]?.plan?.currency ?? null,
+    planBillingCycle:
+      raw?.branch?.subscriptions?.[0]?.plan?.billingCycle ?? null,
   }
 }
 

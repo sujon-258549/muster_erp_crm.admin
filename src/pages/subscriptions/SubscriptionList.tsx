@@ -19,24 +19,29 @@ import {
   type Column,
 } from "@/components/shared"
 import { useDebounce } from "@/hooks/use-debounce"
-import { useBranch, useSubscription } from "@/hooks/data-fetch"
+import { useMainBranch, useSubscription } from "@/hooks/data-fetch"
 import type { Subscription } from "@/redux/features/subscriptions"
 import { getErrorMessage } from "@/lib/errors"
 import { shortId } from "@/lib/format"
 import { getCycleLabel } from "@/lib/billing-cycles"
 import { SubscriptionFormModal } from "@/components/modal"
 
-const formatMoney = (price: number | null, currency: string | null) => {
-  if (price == null) return "—"
+const formatMoney = (
+  price: number | string | null | undefined,
+  currency: string | null | undefined,
+) => {
+  if (price == null || price === "") return "—"
+  const n = typeof price === "string" ? Number(price) : price
+  if (Number.isNaN(n)) return "—"
   const code = currency || "BDT"
   try {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: code,
       maximumFractionDigits: 2,
-    }).format(price)
+    }).format(n)
   } catch {
-    return `${code} ${price.toLocaleString()}`
+    return `${code} ${n.toLocaleString()}`
   }
 }
 
@@ -53,7 +58,9 @@ const periodTone = (s: Subscription): {
   const daysLeft = Math.ceil((end.getTime() - now.getTime()) / msInDay)
   if (daysLeft < 0) return { tone: "blocked", label: "Expired" }
   if (daysLeft <= 7) return { tone: "warning", label: `${daysLeft}d left` }
-  return { tone: "success", label: `${daysLeft}d left` }
+  // Use sky blue (info) instead of green here so it doesn't visually
+  // merge with the Active toggle on the same row.
+  return { tone: "info", label: `${daysLeft}d left` }
 }
 
 export default function SubscriptionListPage() {
@@ -70,12 +77,12 @@ export default function SubscriptionListPage() {
 
   // Branch lookup for displaying company names on rows where the API
   // doesn't already include branchName.
-  const { branches } = useBranch({ limit: 200 })
+  const { mainBranches } = useMainBranch({ limit: 200 })
   const branchNameById = useMemo(() => {
     const map = new Map<string, string>()
-    branches.forEach((b) => map.set(b.id, b.name ?? "—"))
+    mainBranches.forEach((b) => map.set(b.id, b.name ?? "—"))
     return map
-  }, [branches])
+  }, [mainBranches])
 
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Subscription | null>(null)
@@ -114,7 +121,10 @@ export default function SubscriptionListPage() {
       key: "company",
       header: "Company",
       cell: (s) => {
-        const name = s.branchName ?? (s.branchId ? branchNameById.get(s.branchId) : null)
+        const name =
+          s.branch?.name ??
+          s.branchName ??
+          (s.branchId ? branchNameById.get(s.branchId) : null)
         return (
           <div className="flex items-center gap-3">
             <IconBadge icon={Receipt} />
@@ -133,9 +143,9 @@ export default function SubscriptionListPage() {
       header: "Plan",
       cell: (s) => (
         <div className="min-w-0">
-          <div className="truncate font-medium">{s.planName || "—"}</div>
+          <div className="truncate font-medium">{s.plan?.name || "—"}</div>
           <Text size="xs" tone="muted">
-            {getCycleLabel(s.billingCycle)}
+            {getCycleLabel(s.plan?.billingCycle)}
           </Text>
         </div>
       ),
@@ -147,7 +157,7 @@ export default function SubscriptionListPage() {
       hideOnMobile: true,
       cell: (s) => (
         <div className="font-medium tabular-nums">
-          {formatMoney(s.price, s.currency)}
+          {formatMoney(s.plan?.price, s.plan?.currency)}
         </div>
       ),
     },
@@ -276,7 +286,7 @@ export default function SubscriptionListPage() {
         onOpenChange={(v) => !v && setPendingDelete(null)}
         title="Delete subscription?"
         description={`This will permanently remove the "${
-          pendingDelete?.planName ?? ""
+          pendingDelete?.plan?.name ?? ""
         }" subscription.`}
         confirmLabel="Delete"
         destructive

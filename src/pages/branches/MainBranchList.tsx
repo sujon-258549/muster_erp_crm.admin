@@ -17,33 +17,33 @@ import {
   type Column,
 } from "@/components/shared"
 import { useDebounce } from "@/hooks/use-debounce"
-import { useBranch } from "@/hooks/data-fetch"
-import type { Branch } from "@/redux/features/branches"
+import { useMainBranch } from "@/hooks/data-fetch"
+import type { MainBranch } from "@/redux/features/main-branches"
 import { getErrorMessage } from "@/lib/errors"
 import { shortId } from "@/lib/format"
-import { BranchFormModal } from "@/components/modal"
+import { MainBranchFormModal } from "@/components/modal"
 
 export default function BranchListPage() {
   const [search, setSearch] = useState("")
   const debounced = useDebounce(search, 350)
 
   const {
-    branches,
+    mainBranches,
     isFetching,
     isLoading,
-    deleteBranch,
-    toggleBranchStatus,
-  } = useBranch({ searchTerm: debounced || undefined, limit: 100 })
+    deleteMainBranch,
+    toggleMainBranchStatus,
+  } = useMainBranch({ searchTerm: debounced || undefined, limit: 100 })
 
   const [formOpen, setFormOpen] = useState(false)
-  const [editing, setEditing] = useState<Branch | null>(null)
-  const [pendingDelete, setPendingDelete] = useState<Branch | null>(null)
+  const [editing, setEditing] = useState<MainBranch | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<MainBranch | null>(null)
 
   const openCreate = () => {
     setEditing(null)
     setFormOpen(true)
   }
-  const openEdit = (b: Branch) => {
+  const openEdit = (b: MainBranch) => {
     setEditing(b)
     setFormOpen(true)
   }
@@ -51,26 +51,26 @@ export default function BranchListPage() {
   const confirmDelete = async () => {
     if (!pendingDelete) return
     try {
-      await deleteBranch(pendingDelete.id).unwrap()
-      toast.success("Branch deleted")
+      await deleteMainBranch(pendingDelete.id).unwrap()
+      toast.success("Main Branch deleted")
       setPendingDelete(null)
     } catch (err) {
-      toast.error(getErrorMessage(err, "Failed to delete branch"))
+      toast.error(getErrorMessage(err, "Failed to delete main branch"))
     }
   }
 
   const onToggle = async (id: string) => {
     try {
-      await toggleBranchStatus(id).unwrap()
+      await toggleMainBranchStatus(id).unwrap()
     } catch {
       toast.error("Failed to update status")
     }
   }
 
-  const columns: Column<Branch>[] = [
+  const columns: Column<MainBranch>[] = [
     {
       key: "name",
-      header: "Branch",
+      header: "Main Branch",
       className: "whitespace-nowrap",
       cell: (b) => (
         <div className="flex items-center gap-3">
@@ -167,17 +167,17 @@ export default function BranchListPage() {
   ]
 
   const [visibleColumns, setVisibleColumns] =
-    useState<Column<Branch>[]>(columns)
+    useState<Column<MainBranch>[]>(columns)
 
   return (
     <div className="space-y-5">
       <PageHeader
-        title="Branches"
+        title="Main Branches"
         description="Top-level locations — head office, regional offices, outlets."
         actions={
           <Can module="branches.list" action="create">
             <Button onClick={openCreate}>
-              <Plus className="size-4" /> New Branch
+              <Plus className="size-4" /> New Main Branch
             </Button>
           </Can>
         }
@@ -186,7 +186,7 @@ export default function BranchListPage() {
       <DataTableToolbar
         value={search}
         onChange={setSearch}
-        placeholder="Search branches..."
+        placeholder="Search main branches..."
         fetching={isFetching}
         right={
           <DataTableColumnsButton
@@ -197,19 +197,19 @@ export default function BranchListPage() {
         }
       />
 
-      <DataTable<Branch>
-        data={branches}
+      <DataTable<MainBranch>
+        data={mainBranches}
         columns={visibleColumns}
-        isLoading={isLoading && branches.length === 0}
+        isLoading={isLoading && mainBranches.length === 0}
         isFetching={isFetching}
         empty={
           <EmptyState
             icon={Building2}
-            title="No branches yet."
+            title="No main branches yet."
             action={
               <Can module="branches.list" action="create">
                 <Button size="sm" onClick={openCreate}>
-                  <Plus className="size-4" /> Create Branch
+                  <Plus className="size-4" /> Create Main Branch
                 </Button>
               </Can>
             }
@@ -217,7 +217,7 @@ export default function BranchListPage() {
         }
       />
 
-      <BranchFormModal
+      <MainBranchFormModal
         open={formOpen}
         onOpenChange={setFormOpen}
         initial={editing}
@@ -226,7 +226,7 @@ export default function BranchListPage() {
       <ConfirmDialog
         open={Boolean(pendingDelete)}
         onOpenChange={(v) => !v && setPendingDelete(null)}
-        title="Delete branch?"
+        title="Delete main branch?"
         description={`This will permanently remove "${pendingDelete?.name ?? ""}" and any sub-branches under it.`}
         confirmLabel="Delete"
         destructive

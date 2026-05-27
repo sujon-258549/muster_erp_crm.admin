@@ -60,8 +60,9 @@ import ProductList from "@/pages/products/product-list-page"
 import InventoryPage from "@/pages/inventory/inventory-page"
 import InvoiceList from "@/pages/invoices/invoice-list-page"
 import SettingsPage from "@/pages/settings/settings-page"
-import BranchList from "@/pages/branches/BranchList"
+import MainBranchList from "@/pages/branches/MainBranchList"
 import SubBranchList from "@/pages/branches/SubBranchList"
+import BranchAdminList from "@/pages/branch-admins/BranchAdminList"
 import CategoryList from "@/pages/categories/CategoryList"
 import SubCategoryList from "@/pages/categories/SubCategoryList"
 import BlogList from "@/pages/blog/BlogList"
@@ -224,7 +225,7 @@ export const router = createBrowserRouter([
         path: "branches",
         element: (
           <RequirePermission moduleKey="branches.list">
-            <BranchList />
+            <MainBranchList />
           </RequirePermission>
         ),
       },
@@ -233,6 +234,14 @@ export const router = createBrowserRouter([
         element: (
           <RequirePermission moduleKey="subbranches.list">
             <SubBranchList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "branches/admins",
+        element: (
+          <RequirePermission moduleKey="branchAdmins">
+            <BranchAdminList />
           </RequirePermission>
         ),
       },

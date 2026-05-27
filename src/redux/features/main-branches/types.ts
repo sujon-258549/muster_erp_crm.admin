@@ -1,6 +1,6 @@
-// Branch domain types — mirrors the backend zod schema.
+// MainBranch domain types — mirrors the backend zod schema.
 
-export interface Branch {
+export interface MainBranch {
   id: string
   name: string | null
   description: string | null
@@ -25,7 +25,7 @@ export interface Branch {
   updatedAt: string
 }
 
-export interface BranchPayload {
+export interface MainBranchPayload {
   name: string
   description?: string
   logo?: string
@@ -43,9 +43,10 @@ export interface BranchPayload {
   currency?: string
   timezone?: string
   isActive?: boolean
+  ownerId?: string
 }
 
-export interface BranchListParams {
+export interface MainBranchListParams {
   page?: number
   limit?: number
   searchTerm?: string

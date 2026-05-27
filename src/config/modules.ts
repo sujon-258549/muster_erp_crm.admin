@@ -31,6 +31,7 @@ export type ModuleKey =
   | "media"
   | "notifications"
   | "subscriptions"
+  | "branchAdmins"
   | "workTypes"
   | "workflow"
   | "settings";
@@ -111,6 +112,11 @@ export const MODULES: AppModule[] = [
         key: "subbranches.list",
         label: "Sub Branches",
         path: "/branches/sub",
+      },
+      {
+        key: "branchAdmins",
+        label: "Branch Super Admin",
+        path: "/branches/admins",
       },
     ],
   },
