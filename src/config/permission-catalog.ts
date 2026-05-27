@@ -16,6 +16,8 @@ export const ACTION_LABEL: Record<string, string> = {
   permission: "Permission",
   change_password: "Change Password",
   view_own: "View Your",
+  publish: "Publish",
+  upload: "Upload",
 }
 
 // Per-module overrides. Anything not listed falls back to CRUD.
@@ -24,6 +26,12 @@ const ACTION_OVERRIDES: Record<string, readonly string[]> = {
   employees: [...CRUD, "change_password"],
   dashboard: ["read", "view_own", "permission"],
   settings: ["read", "update"],
+  // Media library — view + upload + delete (no in-place update).
+  media: ["read", "create", "delete"],
+  // Notifications — view + delete (system creates them).
+  notifications: ["read", "delete"],
+  // Blog — full CRUD with optional publish action.
+  blog: [...CRUD, "publish"],
 }
 
 export interface PermissionCatalogItem {

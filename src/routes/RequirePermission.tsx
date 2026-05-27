@@ -1,39 +1,45 @@
 import type { ReactNode } from "react"
-import { Navigate } from "react-router-dom"
+import { Navigate, useLocation } from "react-router-dom"
 import { useCurrentUser } from "@/hooks/use-permission"
-import { hasPermission, isSuperAdmin } from "@/lib/permissions"
-import { ROUTES } from "@/config/paths"
+import {
+  firstAccessiblePath,
+  hasAction,
+  isSuperAdmin,
+} from "@/lib/permissions"
 
 interface Props {
   // Module key as stored in `user.permissions` — same value the permission
   // modal saves to the backend (e.g. "employees", "departments",
   // "customers.leads").
   moduleKey: string
+  // Action required to view the route. Defaults to "read".
+  action?: string
   children: ReactNode
 }
 
-// Per-route permission gate. Wraps a route element; renders the page only
-// when the signed-in user has access. Super-admins bypass the check.
+// Per-route permission gate. Renders the page only when the user has the
+// given action on the module. Super-admins bypass the check.
 //
-// Usage:
-//   { path: "employees", element: (
-//       <RequirePermission moduleKey="employees">
-//         <EmployeeList />
-//       </RequirePermission>
-//   ) }
-export default function RequirePermission({ moduleKey, children }: Props) {
+// On denial:
+//   - If the user has access to some OTHER module → redirect there.
+//   - If they have access to nothing at all → send to /access-denied.
+export default function RequirePermission({
+  moduleKey,
+  action = "read",
+  children,
+}: Props) {
   const user = useCurrentUser()
+  const location = useLocation()
 
-  // Onboarding fallback: a freshly-created account with no explicit grants
-  // yet still lands on the dashboard — matches the sidebar's behavior.
-  const hasNoExplicitGrants = (user?.permissions?.length ?? 0) === 0
-  if (isSuperAdmin(user) || hasNoExplicitGrants) {
-    return <>{children}</>
+  if (isSuperAdmin(user)) return <>{children}</>
+
+  if (hasAction(user, moduleKey, action)) return <>{children}</>
+
+  const fallback = firstAccessiblePath(user)
+  // Guard against redirect loops: if the fallback path is the route we're
+  // already on, bail to /access-denied instead.
+  if (fallback && fallback !== location.pathname) {
+    return <Navigate to={fallback} replace />
   }
-
-  if (!hasPermission(user, moduleKey)) {
-    return <Navigate to={ROUTES.MODULES.DASHBOARD} replace />
-  }
-
-  return <>{children}</>
+  return <Navigate to="/access-denied" replace />
 }

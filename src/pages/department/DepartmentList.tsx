@@ -4,6 +4,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import {
+  Can,
   ConfirmDialog,
   DataTable,
   DataTableColumnsButton,
@@ -111,22 +112,28 @@ export default function DepartmentListPage() {
       align: "right",
       cell: (d) => (
         <div className="flex justify-end gap-1">
-          <Button
-            size="icon-sm"
-            variant="soft"
-            onClick={() => openEdit(d)}
-            aria-label="Edit"
-          >
-            <Pencil />
-          </Button>
-          <Button
-            size="icon-sm"
-            variant="soft-destructive"
-            onClick={() => setPendingDelete(d)}
-            aria-label="Delete"
-          >
-            <Trash2 />
-          </Button>
+          <Can module="departments" action="update">
+            <Button
+              size="icon-sm"
+              variant="soft"
+              onClick={() => openEdit(d)}
+              aria-label="Edit"
+              className="border border-gray-300"
+            >
+              <Pencil />
+            </Button>
+          </Can>
+          <Can module="departments" action="delete">
+            <Button
+              size="icon-sm"
+              variant="soft-destructive"
+              onClick={() => setPendingDelete(d)}
+              aria-label="Delete"
+              className="border border-gray-300"
+            >
+              <Trash2 />
+            </Button>
+          </Can>
         </div>
       ),
     },
@@ -143,9 +150,11 @@ export default function DepartmentListPage() {
         title="Department List"
         description="Group employees by department for reporting and access scoping."
         actions={
-          <Button onClick={openCreate}>
-            <Plus className="size-4" /> New Department
-          </Button>
+          <Can module="departments" action="create">
+            <Button onClick={openCreate}>
+              <Plus className="size-4" /> New Department
+            </Button>
+          </Can>
         }
       />
 
@@ -173,9 +182,11 @@ export default function DepartmentListPage() {
             icon={Building2}
             title="No departments yet."
             action={
-              <Button size="sm" onClick={openCreate}>
-                <Plus className="size-4" /> Create Department
-              </Button>
+              <Can module="departments" action="create">
+                <Button size="sm" onClick={openCreate}>
+                  <Plus className="size-4" /> Create Department
+                </Button>
+              </Can>
             }
           />
         }

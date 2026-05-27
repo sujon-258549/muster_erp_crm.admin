@@ -1,4 +1,4 @@
-import type { User, UserRole } from "@/types/user"
+import type { PermissionRow, User, UserRole } from "@/types/user"
 
 // Backend payload can be one of several shapes — flatten + map into the
 // shape the rest of the app expects.
@@ -8,7 +8,8 @@ interface BackendUser {
   email?: string
   name?: string
   createdAt?: string
-  permissions?: string[]
+  permissions?: PermissionRow[]
+  forceReload?: boolean
   role?: string | { role?: string }
   profile?: {
     name?: string
@@ -18,14 +19,13 @@ interface BackendUser {
   [key: string]: unknown
 }
 
-// "SUPER_ADMIN" -> "super-admin", "ADMIN" -> "admin", "manager" -> "manager"
+// Backend may send the role as a string ("SUPER_ADMIN") or a joined object
+// ({ role: "SUPER_ADMIN" }). Always return uppercase so `isSuperAdmin` can
+// rely on `=== "SUPER_ADMIN"` regardless of what the DB happens to hold.
 const normalizeRole = (raw: BackendUser["role"]): UserRole => {
   const value =
     typeof raw === "string" ? raw : typeof raw === "object" ? raw?.role : ""
-  if (!value) return "staff"
-  const slug = value.toLowerCase().replace(/_/g, "-")
-  const known: UserRole[] = ["super-admin", "admin", "manager", "staff", "customer"]
-  return (known.find((r) => r === slug) ?? "staff") as UserRole
+  return (value ?? "").toUpperCase().replace(/-/g, "_")
 }
 
 export function normalizeUser(raw: BackendUser | null | undefined): User {
@@ -34,7 +34,7 @@ export function normalizeUser(raw: BackendUser | null | undefined): User {
       id: "",
       name: "User",
       email: "",
-      role: "staff",
+      role: "",
       permissions: [],
       createdAt: new Date().toISOString(),
     }
@@ -48,6 +48,7 @@ export function normalizeUser(raw: BackendUser | null | undefined): User {
       raw.profile?.profilePhoto ?? raw.profile?.photo ?? undefined,
     role: normalizeRole(raw.role),
     permissions: raw.permissions ?? [],
+    forceReload: raw.forceReload ?? false,
     createdAt: raw.createdAt ?? new Date().toISOString(),
   }
 }

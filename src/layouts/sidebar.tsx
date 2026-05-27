@@ -24,7 +24,7 @@ import {
 import { useAppDispatch } from "@/redux/hooks"
 import { loggedOut } from "@/redux/features/auth/auth-slice"
 import { useCurrentUser } from "@/hooks/use-permission"
-import { hasPermission, isSuperAdmin } from "@/lib/permissions"
+import { hasAction, isSuperAdmin } from "@/lib/permissions"
 import { MODULES, type AppModule, type AppModuleChild } from "@/config/modules"
 import { ROUTES } from "@/config/paths"
 import { siteConfig } from "@/config/site"
@@ -35,28 +35,25 @@ export default function AppSidebar() {
   const dispatch = useAppDispatch()
   const user = useCurrentUser()
 
-  // Sidebar visibility uses sub-module keys (matches what the permission
-  // modal saves to the backend).
-  //   - Parent with children → keep child if user has its key; drop the
-  //     whole parent if no child is permitted.
-  //   - Top-level (no children) → check the parent's own key.
-  // Super-admin sees everything. Users with no explicit grants yet fall
-  // back to all modules so the sidebar is never empty during onboarding.
+  // Sidebar visibility — a module appears only if the user has the `read`
+  // action on it. Super-admin sees everything.
+  //   - Parent with children → keep child if `read` granted on its key;
+  //     drop the whole parent if no child has read.
+  //   - Top-level (no children) → check `read` on the parent's own key.
   const accessibleModules: AppModule[] = (() => {
-    if (!user || isSuperAdmin(user)) return MODULES
-    const hasAnyExplicit = (user.permissions?.length ?? 0) > 0
-    if (!hasAnyExplicit) return MODULES
+    if (!user) return []
+    if (isSuperAdmin(user)) return MODULES
 
     const result: AppModule[] = []
     for (const mod of MODULES) {
       if (mod.children && mod.children.length > 0) {
         const visibleChildren: AppModuleChild[] = mod.children.filter((c) =>
-          hasPermission(user, c.key),
+          hasAction(user, c.key, "read"),
         )
         if (visibleChildren.length > 0) {
           result.push({ ...mod, children: visibleChildren })
         }
-      } else if (hasPermission(user, mod.key)) {
+      } else if (hasAction(user, mod.key, "read")) {
         result.push(mod)
       }
     }

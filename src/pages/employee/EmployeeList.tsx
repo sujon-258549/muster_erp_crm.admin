@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
-import { Ban, Plus, Trash2, UserMinus, Users as UsersIcon } from "lucide-react"
+import { Ban, Pencil, Plus, Trash2, UserMinus, Users as UsersIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
+  Can,
   ConfirmDialog,
   DataTable,
   DataTableColumnsButton,
@@ -159,11 +160,12 @@ export default function EmployeeListPage() {
     {
       key: "name",
       header: "Name",
+      className: "whitespace-nowrap",
       cell: (u) => (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 whitespace-nowrap">
           <UserAvatar name={u.name} src={u.avatar} />
-          <div>
-            <div className="font-medium">{u.name || "—"}</div>
+          <div className="min-w-0">
+            <div className="truncate font-medium">{u.name || "—"}</div>
             <Text size="xs" tone="muted">
               {shortId(u.id)}
             </Text>
@@ -175,6 +177,7 @@ export default function EmployeeListPage() {
       key: "contact",
       header: "Contact",
       hideOnMobile: true,
+      className: "whitespace-nowrap",
       cell: (u) => (
         <div className="flex flex-col">
           <Text size="sm" tone="muted">
@@ -190,6 +193,7 @@ export default function EmployeeListPage() {
       key: "designation",
       header: "Designation",
       hideOnMobile: true,
+      className: "whitespace-nowrap",
       cell: (u) => (
         <Text size="sm" tone="muted">
           {u.designationName || "—"}
@@ -200,9 +204,50 @@ export default function EmployeeListPage() {
       key: "department",
       header: "Department",
       hideOnMobile: true,
+      className: "whitespace-nowrap",
       cell: (u) => (
         <Text size="sm" tone="muted">
           {u.departmentName || "—"}
+        </Text>
+      ),
+    },
+    {
+      key: "gender",
+      header: "Gender",
+      hideOnMobile: true,
+      cell: (u) => (
+        <Text size="sm" tone="muted" className="capitalize">
+          {u.gender ? u.gender.toLowerCase() : "—"}
+        </Text>
+      ),
+    },
+    {
+      key: "bloodGroup",
+      header: "Blood Group",
+      hideOnMobile: true,
+      cell: (u) =>
+        u.bloodGroup ? (
+          <StatusBadge
+            tone="info"
+            label={u.bloodGroup
+              .replace("_", " ")
+              .replace("POSITIVE", "+")
+              .replace("NEGATIVE", "−")}
+          />
+        ) : (
+          <Text size="sm" tone="muted">
+            —
+          </Text>
+        ),
+    },
+    {
+      key: "nid",
+      header: "NID",
+      hideOnMobile: true,
+      className: "whitespace-nowrap",
+      cell: (u) => (
+        <Text size="sm" tone="muted">
+          {u.nid || "—"}
         </Text>
       ),
     },
@@ -238,36 +283,59 @@ export default function EmployeeListPage() {
         const selfTitle = "You can't perform this action on your own account"
         return (
           <div className="flex justify-end gap-1">
-            <Button
-              size="icon-sm"
-              variant="ghost"
-              onClick={() => onBlock(u.id)}
-              disabled={isSelf}
-              aria-label="Toggle block"
-              title={isSelf ? selfTitle : "Toggle block"}
-            >
-              <Ban />
-            </Button>
-            <Button
-              size="icon-sm"
-              variant="soft-warning"
-              onClick={() => setPendingSoftDelete(u)}
-              disabled={isSelf}
-              aria-label="Soft delete"
-              title={isSelf ? selfTitle : "Soft delete"}
-            >
-              <UserMinus />
-            </Button>
-            <Button
-              size="icon-sm"
-              variant="soft-destructive"
-              onClick={() => setPendingDelete(u)}
-              disabled={isSelf}
-              aria-label="Delete"
-              title={isSelf ? selfTitle : "Delete"}
-            >
-              <Trash2 />
-            </Button>
+            <Can module="employees" action="update">
+              <Button
+                size="icon-sm"
+                variant="ghost"
+                asChild
+                aria-label="Update employee"
+                title="Update employee"
+                className="border border-gray-300"
+              >
+                <Link to={ROUTES.EMPLOYEES.EDIT(u.id)}>
+                  <Pencil />
+                </Link>
+              </Button>
+            </Can>
+            <Can module="employees" action="update">
+              <Button
+                size="icon-sm"
+                variant="ghost"
+                onClick={() => onBlock(u.id)}
+                disabled={isSelf}
+                aria-label="Toggle block"
+                title={isSelf ? selfTitle : "Toggle block"}
+                className="border border-gray-300"
+              >
+                <Ban />
+              </Button>
+            </Can>
+            <Can module="employees" action="delete">
+              <Button
+                size="icon-sm"
+                variant="soft-warning"
+                onClick={() => setPendingSoftDelete(u)}
+                disabled={isSelf}
+                aria-label="Soft delete"
+                title={isSelf ? selfTitle : "Soft delete"}
+                className="border border-gray-300"
+              >
+                <UserMinus />
+              </Button>
+            </Can>
+            <Can module="employees" action="delete">
+              <Button
+                size="icon-sm"
+                variant="soft-destructive"
+                onClick={() => setPendingDelete(u)}
+                disabled={isSelf}
+                aria-label="Delete"
+                title={isSelf ? selfTitle : "Delete"}
+                className="border border-gray-300"
+              >
+                <Trash2 />
+              </Button>
+            </Can>
           </div>
         )
       },
@@ -286,12 +354,14 @@ export default function EmployeeListPage() {
         title="Employee List"
         description="Manage your workforce, their roles, departments and designations."
         actions={
-          <Button asChild>
-            <Link to={ROUTES.EMPLOYEES.CREATE}>
-              <Plus className="size-4" />
-              Create Employee
-            </Link>
-          </Button>
+          <Can module="employees" action="create">
+            <Button asChild>
+              <Link to={ROUTES.EMPLOYEES.CREATE}>
+                <Plus className="size-4" />
+                Create Employee
+              </Link>
+            </Button>
+          </Can>
         }
       />
 
@@ -362,11 +432,13 @@ export default function EmployeeListPage() {
             title="No employees found."
             description="Add your first employee to get started."
             action={
-              <Button asChild size="sm">
-                <Link to={ROUTES.EMPLOYEES.CREATE}>
-                  <Plus className="size-4" /> Create Employee
-                </Link>
-              </Button>
+              <Can module="employees" action="create">
+                <Button asChild size="sm">
+                  <Link to={ROUTES.EMPLOYEES.CREATE}>
+                    <Plus className="size-4" /> Create Employee
+                  </Link>
+                </Button>
+              </Can>
             }
           />
         }

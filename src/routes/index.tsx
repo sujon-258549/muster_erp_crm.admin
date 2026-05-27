@@ -1,4 +1,16 @@
 import { createBrowserRouter, Navigate } from "react-router-dom"
+import { useCurrentUser } from "@/hooks/use-permission"
+import { firstAccessiblePath, isSuperAdmin } from "@/lib/permissions"
+import { ROUTES } from "@/config/paths"
+
+// "/" entry: redirect to the first module the signed-in user can read.
+// Super-admin lands on /dashboard; users with no grants go to /access-denied.
+function SmartIndex() {
+  const user = useCurrentUser()
+  if (isSuperAdmin(user)) return <Navigate to={ROUTES.MODULES.DASHBOARD} replace />
+  const target = firstAccessiblePath(user)
+  return <Navigate to={target ?? "/access-denied"} replace />
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Route guards — only-here-for-routing helpers.
@@ -23,6 +35,7 @@ import Login from "@/pages/auth/login-page"
 // ─────────────────────────────────────────────────────────────────────────────
 import NotFound from "@/pages/common/NotFound"
 import ErrorPage from "@/pages/common/ErrorPage"
+import AccessDenied from "@/pages/common/AccessDenied"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Dashboard
@@ -34,6 +47,7 @@ import Dashboard from "@/pages/dashboard/dashboard-page"
 // ─────────────────────────────────────────────────────────────────────────────
 import EmployeeList from "@/pages/employee/EmployeeList"
 import EmployeeCreate from "@/pages/employee/EmployeeCreate"
+import EmployeeEdit from "@/pages/employee/EmployeeEdit"
 import DepartmentList from "@/pages/department/DepartmentList"
 import RoleList from "@/pages/role/RoleList"
 import DesignationList from "@/pages/designation/DesignationList"
@@ -46,6 +60,15 @@ import ProductList from "@/pages/products/product-list-page"
 import InventoryPage from "@/pages/inventory/inventory-page"
 import InvoiceList from "@/pages/invoices/invoice-list-page"
 import SettingsPage from "@/pages/settings/settings-page"
+import BranchList from "@/pages/branches/BranchList"
+import SubBranchList from "@/pages/branches/SubBranchList"
+import CategoryList from "@/pages/categories/CategoryList"
+import SubCategoryList from "@/pages/categories/SubCategoryList"
+import BlogList from "@/pages/blog/BlogList"
+import MediaLibrary from "@/pages/media/MediaLibrary"
+import WorkTypeList from "@/pages/work-types/WorkTypeList"
+import SubscriptionList from "@/pages/subscriptions/SubscriptionList"
+import NotificationList from "@/pages/notifications/NotificationList"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Router
@@ -79,9 +102,23 @@ export const router = createBrowserRouter([
     ),
     errorElement: <ErrorPage />,
     children: [
-      // Dashboard — default landing after login.
-      { index: true, element: <Dashboard /> },
-      { path: "dashboard", element: <Dashboard /> },
+      // Index "/" routes the user to their first accessible module.
+      { index: true, element: <SmartIndex /> },
+
+      // Dashboard — needs explicit `dashboard.read` permission like any
+      // other module. Super-admins bypass.
+      {
+        path: "dashboard",
+        element: (
+          <RequirePermission moduleKey="dashboard">
+            <Dashboard />
+          </RequirePermission>
+        ),
+      },
+
+      // Shown when the user is signed in but has no module access (or hit
+      // a route they don't have permission for).
+      { path: "access-denied", element: <AccessDenied /> },
 
       // Employee Management — each sub-module guarded by its own key.
       // Keys match what the permission modal writes to the backend.
@@ -96,8 +133,16 @@ export const router = createBrowserRouter([
       {
         path: "employees/new",
         element: (
-          <RequirePermission moduleKey="employees">
+          <RequirePermission moduleKey="employees" action="create">
             <EmployeeCreate />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "employees/:id/edit",
+        element: (
+          <RequirePermission moduleKey="employees" action="update">
+            <EmployeeEdit />
           </RequirePermission>
         ),
       },
@@ -168,6 +213,92 @@ export const router = createBrowserRouter([
         element: (
           <RequirePermission moduleKey="settings">
             <SettingsPage />
+          </RequirePermission>
+        ),
+      },
+
+      // Branches
+      {
+        path: "branches",
+        element: (
+          <RequirePermission moduleKey="branches.list">
+            <BranchList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "branches/sub",
+        element: (
+          <RequirePermission moduleKey="subbranches.list">
+            <SubBranchList />
+          </RequirePermission>
+        ),
+      },
+
+      // Categories
+      {
+        path: "categories",
+        element: (
+          <RequirePermission moduleKey="categories.list">
+            <CategoryList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "categories/sub",
+        element: (
+          <RequirePermission moduleKey="subcategories.list">
+            <SubCategoryList />
+          </RequirePermission>
+        ),
+      },
+
+      // Blog
+      {
+        path: "blog",
+        element: (
+          <RequirePermission moduleKey="blog">
+            <BlogList />
+          </RequirePermission>
+        ),
+      },
+
+      // Media Library
+      {
+        path: "media",
+        element: (
+          <RequirePermission moduleKey="media">
+            <MediaLibrary />
+          </RequirePermission>
+        ),
+      },
+
+      // Work Types
+      {
+        path: "work-types",
+        element: (
+          <RequirePermission moduleKey="workTypes">
+            <WorkTypeList />
+          </RequirePermission>
+        ),
+      },
+
+      // Subscriptions
+      {
+        path: "subscriptions",
+        element: (
+          <RequirePermission moduleKey="subscriptions">
+            <SubscriptionList />
+          </RequirePermission>
+        ),
+      },
+
+      // Notifications
+      {
+        path: "notifications",
+        element: (
+          <RequirePermission moduleKey="notifications">
+            <NotificationList />
           </RequirePermission>
         ),
       },

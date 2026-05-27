@@ -1,30 +1,72 @@
-import PageHeader from "@/components/common/page-header"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  DashboardHeader,
+  DepartmentDonut,
+  InventoryAlerts,
+  KpiCards,
+  QuickActions,
+  RecentActivities,
+  RecentOrders,
+  RevenueChart,
+  SatisfactionGauge,
+  SystemStatus,
+  TasksCard,
+  TopEmployees,
+  TopProducts,
+  UpcomingEvents,
+  WeeklySales,
+} from "./components"
 
-const stats = [
-  { label: "Total Customers", value: "1,248" },
-  { label: "Active Orders", value: "324" },
-  { label: "Revenue (MTD)", value: "$48,920" },
-  { label: "Pending Invoices", value: "37" },
-]
-
+// Dashboard is a thin shell — each card is a self-contained component in
+// ./components. Add or rearrange sections by editing the JSX below; the
+// component files own their own data + styles.
 export default function DashboardPage() {
   return (
-    <div>
-      <PageHeader title="Dashboard" description="Overview of your business" />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((s) => (
-          <Card key={s.label}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {s.label}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold">{s.value}</div>
-            </CardContent>
-          </Card>
-        ))}
+    <div className="space-y-5">
+      <DashboardHeader />
+
+      <KpiCards />
+
+      {/* Row 1: revenue chart (wide) + satisfaction gauge */}
+      <div className="grid gap-5 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <RevenueChart />
+        </div>
+        <SatisfactionGauge />
+      </div>
+
+      {/* Row 2: weekly sales bar + department headcount donut */}
+      <div className="grid gap-5 lg:grid-cols-2">
+        <WeeklySales />
+        <DepartmentDonut />
+      </div>
+
+      {/* Row 3: recent orders (wide) + tasks */}
+      <div className="grid gap-5 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <RecentOrders />
+        </div>
+        <TasksCard />
+      </div>
+
+      {/* Row 4: top products (wide) + recent activities */}
+      <div className="grid gap-5 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <TopProducts />
+        </div>
+        <RecentActivities />
+      </div>
+
+      {/* Row 5: top employees + upcoming events + quick actions */}
+      <div className="grid gap-5 lg:grid-cols-3">
+        <TopEmployees />
+        <UpcomingEvents />
+        <QuickActions />
+      </div>
+
+      {/* Row 6: inventory alerts + system status */}
+      <div className="grid gap-5 lg:grid-cols-2">
+        <InventoryAlerts />
+        <SystemStatus />
       </div>
     </div>
   )

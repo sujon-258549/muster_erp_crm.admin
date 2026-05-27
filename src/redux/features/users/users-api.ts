@@ -24,6 +24,12 @@ const flattenEmployee = (raw: any): EmployeeRow => {
     isDeleted: raw?.isDeleted ?? false,
     departmentName: raw?.department?.name ?? null,
     designationName: raw?.designation?.name ?? null,
+    gender: raw?.profile?.gender ?? null,
+    bloodGroup: raw?.profile?.bloodGroup ?? null,
+    dob: raw?.profile?.dob ?? null,
+    nid: raw?.profile?.nid ?? null,
+    experience: raw?.workInfo?.experience ?? null,
+    workType: raw?.workInfo?.workType ?? null,
   }
 }
 

@@ -64,7 +64,9 @@ export default function LoginPage() {
 
       dispatch(credentialsSet({ user, accessToken, refreshToken }))
       toast.success(`Welcome back, ${user?.name ?? "user"}`)
-      navigate(ROUTES.MODULES.DASHBOARD)
+      // "/" hits SmartIndex which routes the user to their first accessible
+      // module (or /access-denied if no permissions are granted).
+      navigate(ROUTES.ROOT)
     } catch (err) {
       const msg = extractErrorMessage(err)
       setErrorMsg(msg)

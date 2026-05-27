@@ -127,6 +127,8 @@ export const baseApi = createApi({
     "Role",
     "Designation",
     "Permission",
+    "Branch",
+    "SubBranch",
   ],
   endpoints: () => ({}),
 })

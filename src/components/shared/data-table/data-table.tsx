@@ -87,69 +87,69 @@ export function DataTable<T extends Record<string, any>>({
     return <>{empty}</>
   }
 
+  // Single scrollbar — when the table is wider than the card, the card
+  // itself scrolls horizontally. No nested overflow regions.
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-md border bg-card text-card-foreground shadow-xs",
+        "overflow-x-auto rounded-md border bg-card text-card-foreground shadow-xs",
         isFetching && "ring-1 ring-primary/10",
         className,
       )}
     >
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm" style={{ minWidth }}>
-          {caption && (
-            <caption className="px-4 py-2 text-left text-xs text-muted-foreground">
-              {caption}
-            </caption>
-          )}
-          <thead className="border-b border-border/70 bg-muted/50 text-[11px] uppercase tracking-wider text-muted-foreground">
-            <tr>
+      <table className="w-full text-sm" style={{ minWidth }}>
+        {caption && (
+          <caption className="px-4 py-2 text-left text-xs text-muted-foreground">
+            {caption}
+          </caption>
+        )}
+        <thead className="border-b border-border/70 bg-muted/50 text-[11px] uppercase tracking-wider text-muted-foreground">
+          <tr>
+            {columns.map((col) => (
+              <th
+                key={col.key}
+                style={col.width ? { width: col.width } : undefined}
+                className={cn(
+                  "px-4 py-3 font-semibold",
+                  alignClass(col.align),
+                  responsiveClass(col.hideOnMobile),
+                  col.headerClassName,
+                )}
+              >
+                {col.header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border/60">
+          {data.map((row, index) => (
+            <tr
+              key={keyFor(row, index)}
+              className={cn(
+                "transition-colors hover:bg-muted/40",
+                onRowClick && "cursor-pointer",
+              )}
+              onClick={onRowClick ? () => onRowClick(row) : undefined}
+            >
               {columns.map((col) => (
-                <th
+                <td
                   key={col.key}
-                  style={col.width ? { width: col.width } : undefined}
                   className={cn(
-                    "px-4 py-3 font-semibold",
+                    "px-4 py-3 align-middle",
                     alignClass(col.align),
                     responsiveClass(col.hideOnMobile),
-                    col.headerClassName,
+                    col.className,
                   )}
                 >
-                  {col.header}
-                </th>
+                  {col.cell
+                    ? col.cell(row, index)
+                    : (row[col.key as keyof T] as React.ReactNode)}
+                </td>
               ))}
             </tr>
-          </thead>
-          <tbody className="divide-y divide-border/60">
-            {data.map((row, index) => (
-              <tr
-                key={keyFor(row, index)}
-                className={cn(
-                  "transition-colors hover:bg-muted/40",
-                  onRowClick && "cursor-pointer",
-                )}
-                onClick={onRowClick ? () => onRowClick(row) : undefined}
-              >
-                {columns.map((col) => (
-                  <td
-                    key={col.key}
-                    className={cn(
-                      "px-4 py-3 align-middle",
-                      alignClass(col.align),
-                      responsiveClass(col.hideOnMobile),
-                      col.className,
-                    )}
-                  >
-                    {col.cell
-                      ? col.cell(row, index)
-                      : (row[col.key as keyof T] as React.ReactNode)}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
       {footer}
     </div>
   )

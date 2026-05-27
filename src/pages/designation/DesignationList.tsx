@@ -4,6 +4,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import {
+  Can,
   ConfirmDialog,
   DataTable,
   DataTableColumnsButton,
@@ -140,22 +141,28 @@ export default function DesignationListPage() {
       align: "right",
       cell: (d) => (
         <div className="flex justify-end gap-1">
-          <Button
-            size="icon-sm"
-            variant="soft"
-            onClick={() => openEdit(d)}
-            aria-label="Edit"
-          >
-            <Pencil />
-          </Button>
-          <Button
-            size="icon-sm"
-            variant="soft-destructive"
-            onClick={() => setPendingDelete(d)}
-            aria-label="Delete"
-          >
-            <Trash2 />
-          </Button>
+          <Can module="designations" action="update">
+            <Button
+              size="icon-sm"
+              variant="soft"
+              onClick={() => openEdit(d)}
+              aria-label="Edit"
+              className="border border-gray-300"
+            >
+              <Pencil />
+            </Button>
+          </Can>
+          <Can module="designations" action="delete">
+            <Button
+              size="icon-sm"
+              variant="soft-destructive"
+              onClick={() => setPendingDelete(d)}
+              aria-label="Delete"
+              className="border border-gray-300"
+            >
+              <Trash2 />
+            </Button>
+          </Can>
         </div>
       ),
     },
@@ -172,9 +179,11 @@ export default function DesignationListPage() {
         title="Designation List"
         description="Job titles assigned to employees — e.g. Software Engineer, HR Manager."
         actions={
-          <Button onClick={openCreate}>
-            <Plus className="size-4" /> New Designation
-          </Button>
+          <Can module="designations" action="create">
+            <Button onClick={openCreate}>
+              <Plus className="size-4" /> New Designation
+            </Button>
+          </Can>
         }
       />
 
@@ -207,9 +216,11 @@ export default function DesignationListPage() {
             icon={BadgeCheck}
             title="No designations yet."
             action={
-              <Button size="sm" onClick={openCreate}>
-                <Plus className="size-4" /> Create Designation
-              </Button>
+              <Can module="designations" action="create">
+                <Button size="sm" onClick={openCreate}>
+                  <Plus className="size-4" /> Create Designation
+                </Button>
+              </Can>
             }
           />
         }

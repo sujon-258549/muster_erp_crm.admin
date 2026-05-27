@@ -4,6 +4,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import {
+  Can,
   ConfirmDialog,
   DataTable,
   DataTableColumnsButton,
@@ -27,12 +28,18 @@ export default function RoleListPage() {
   const debounced = useDebounce(search, 350)
 
   const {
-    roles,
+    roles: rawRoles,
     isFetching,
     isLoading,
     deleteRole,
     toggleRoleStatus,
   } = useRole({ searchTerm: debounced || undefined, limit: 100 })
+
+  // Hide the bootstrap SUPER_ADMIN role from the management table — it's
+  // a system role and shouldn't be editable/deletable from the UI.
+  const roles = rawRoles.filter(
+    (r) => (r.role ?? "").toUpperCase() !== "SUPER_ADMIN",
+  )
 
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Role | null>(null)
@@ -114,30 +121,40 @@ export default function RoleListPage() {
       align: "right",
       cell: (r) => (
         <div className="flex justify-end gap-1">
-          <Button
-            size="sm"
-            variant="soft"
-            onClick={() => setPermRole(r)}
-            title="Manage permissions"
-          >
-            <KeyRound className="size-4" /> Permission
-          </Button>
-          <Button
-            size="icon-sm"
-            variant="ghost"
-            onClick={() => openEdit(r)}
-            aria-label="Edit"
-          >
-            <Pencil />
-          </Button>
-          <Button
-            size="icon-sm"
-            variant="soft-destructive"
-            onClick={() => setPendingDelete(r)}
-            aria-label="Delete"
-          >
-            <Trash2 />
-          </Button>
+          <Can module="roles" action="permission">
+            <Button
+              size="icon-sm"
+              variant="soft"
+              onClick={() => setPermRole(r)}
+              aria-label="Manage permissions"
+              title="Manage permissions"
+              className="border border-gray-300"
+            >
+              <KeyRound />
+            </Button>
+          </Can>
+          <Can module="roles" action="update">
+            <Button
+              size="icon-sm"
+              variant="ghost"
+              onClick={() => openEdit(r)}
+              aria-label="Edit"
+              className="border border-gray-300"
+            >
+              <Pencil />
+            </Button>
+          </Can>
+          <Can module="roles" action="delete">
+            <Button
+              size="icon-sm"
+              variant="soft-destructive"
+              onClick={() => setPendingDelete(r)}
+              aria-label="Delete"
+              className="border border-gray-300"
+            >
+              <Trash2 />
+            </Button>
+          </Can>
         </div>
       ),
     },
@@ -154,9 +171,11 @@ export default function RoleListPage() {
         title="Role List"
         description="Define access roles and assign per-module permissions to each."
         actions={
-          <Button onClick={openCreate}>
-            <Plus className="size-4" /> New Role
-          </Button>
+          <Can module="roles" action="create">
+            <Button onClick={openCreate}>
+              <Plus className="size-4" /> New Role
+            </Button>
+          </Can>
         }
       />
 
@@ -184,9 +203,11 @@ export default function RoleListPage() {
             icon={ShieldCheck}
             title="No roles yet."
             action={
-              <Button size="sm" onClick={openCreate}>
-                <Plus className="size-4" /> Create Role
-              </Button>
+              <Can module="roles" action="create">
+                <Button size="sm" onClick={openCreate}>
+                  <Plus className="size-4" /> Create Role
+                </Button>
+              </Can>
             }
           />
         }

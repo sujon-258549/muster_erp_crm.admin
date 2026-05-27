@@ -94,4 +94,10 @@ export interface EmployeeRow extends User {
   isDeleted?: boolean
   departmentName?: string | null
   designationName?: string | null
+  gender?: string | null
+  bloodGroup?: string | null
+  dob?: string | null
+  nid?: string | null
+  experience?: string | null
+  workType?: string | null
 }
